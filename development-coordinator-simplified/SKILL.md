@@ -2,14 +2,14 @@
 name: Development Coordinator Simplified
 description: This skill should be used when coordinating large or complex deliveries. The coordinating thread analyzes the problem and plans the execution. It delegates bounded assignments with complete self-contained prompts to workers on user-approved models — research, deeper analysis of complex problems, design, implementation, debugging, corrections, verification, and integration. It verifies results in batches, keeps user decisions binding, and requires validation evidence.
 metadata:
-  version: "2.0"
+  version: "2.1"
 ---
 
 # Development Coordinator Simplified
 
 ## Purpose
 
-Coordinate design and development deliveries from goals that the user provides.
+Coordinate deliveries from goals that the user provides.
 
 This thread is the coordinator. A worker is a subagent that receives an assignment.
 
@@ -31,7 +31,7 @@ Use this thread (coordinator) for user consultation, problem analysis, execution
 - Coordinate acceptance, corrections, verification, and integration based on worker findings.
 - Report delivery status.
 
-Delegate investigation, design, implementation, diagnosis, artifact inspection, testing, verification, and integration.
+Delegate research, investigation, deeper analysis of complex problems, design, implementation, diagnosis and debugging, corrections, artifact inspection, testing, verification, and integration.
 
 Require workers to assess technical compliance and validation evidence. Do not repeat their technical analysis in this thread (coordinator).
 
