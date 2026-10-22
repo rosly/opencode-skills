@@ -1,8 +1,8 @@
 ---
 name: Development Coordinator Focused
-description: This skill should be used when coordinating large or complex design and development deliveries through small, precisely scoped assignments, user-approved models, delegated technical reasoning, and batched verification. It preserves explicit decisions, validation evidence, and recovery checkpoints while limiting the main thread to orchestration.
+description: This skill should be used when coordinating large or complex design and development deliveries. It applies small, precisely scoped assignments, user-approved models, delegated technical reasoning, and batched verification. It preserves explicit decisions, validation evidence, and recovery checkpoints while limiting the main thread to orchestration.
 metadata:
-  version: "1.8"
+  version: "1.12"
 ---
 
 # Development Coordinator Focused
@@ -79,17 +79,22 @@ Request confirmation before accessing excluded or unapproved inputs.
 
 Query the environment for available models and variants before proposing assignments.
 
-Recommend these defaults:
+Use these model-ID glob patterns to guide recommendations. Treat `*` as matching any sequence of characters, including `/`. Resolve each recommendation to an exact available identifier before requesting approval.
 
-- For small execution assignments, propose `qwen3.8-q3-rad-focused-coder-2x-111k` with variant `medium`.
-- For assignments requiring multilevel reasoning or planning, propose GPT-6.1 Sol with variant `medium`.
+- Complex reasoning, analysis, and planning:
+  - GPT Sol: `*gpt-*-sol*`.
+  - Claude Opus: `*claude*opus*`.
+  - Claude Sonnet: `*claude*sonnet*`.
+- Coding:
+  - GPT Sol: `*gpt-*-sol*`.
+  - GPT Luna: `*gpt-*-luna*`.
+  - Claude Sonnet: `*claude*sonnet*`.
+  - GPT Codex Spark: `*gpt-*-codex-spark*`.
+  - Qwen: `*qwen*`.
 
-Resolve these names to exact identifiers returned by the environment. Obtain all alternative options from the environment.
+Recommend Qwen with variant `low` (`#low`) for small coding assignments and GPT Sol with variant `medium` for multilevel reasoning or planning. Recommend Qwen for coding only with `#low`. Propose only variants available for the selected exact identifier.
 
-When requesting model approval, require the planner to present the default recommendations and alternatives from the environment's available-model list. Group the proposals by assignment type, using this reference:
-
-- Complex reasoning and planning: GPT-6.1 Sol, Claude Opus, Claude Sonnet.
-- Coding: GPT-6.1 Sol, Claude Sonnet, GPT-5.3 Codex Spark, Qwen focused coder.
+When requesting model approval, require the planner to present the default recommendations and available alternatives grouped by assignment type.
 
 Ask the user to approve the models, variants, and the roles or assignment types each approval covers. Include verification and recovery.
 
@@ -169,6 +174,43 @@ Write complete sentences with correct spacing and consistent terms. Keep as much
 
 Do not optimize for short prompts. Do not present implementation alternatives when the direction is already approved.
 
+## Worker Prompt Flags
+
+Determine these flags when composing each worker prompt:
+- `any_worker`: Set for every worker, including coordinator, planner, analyst, tester, validator, verifier, integration, recovery, and coding workers.
+- `coding_worker`: Set for every coding assignment.
+- `small_coding_agent`: Set when `coding_worker` is active and the exact model identifier matches any of these glob patterns:
+  - GPT Luna: `*gpt-*-luna*`.
+  - Claude Sonnet: `*claude*sonnet*`.
+  - All Qwen models: `*qwen*`.
+
+Require the coordinator and the planner to copy the instruction block of each active flag (`any_worker`, `coding_worker`, `small_coding_agent`) into the worker prompt word for word. Do not paraphrase, summarize, reinterpret, reorder, omit, or replace any part of a required block with independently written instructions or a reference. Apply this rule to every fragment explicitly designated for verbatim inclusion, including continuation and replacement prompts. Before starting the worker, check that each required fragment is present and unchanged.
+
+### any_worker
+
+```markdown
+## any_worker
+- Perform mathematical calculations and text operations ONLY through the `execute` tool, using JavaScript. This includes trivial arithmetic, searching, matching, extracting, splitting, replacing, counting, sorting, and reversing text. Do not perform these operations mentally. Defer them to a tool call and do not try to count by hand! Obtain the `execute` result before using or reporting it.
+- Pass JavaScript in the `code` parameter of `execute`. If the script needs tools, discover them with synchronous `search(...)` and call only the exact paths and signatures returned by the Code Mode catalog through `tools`. Await every call before moving forward.
+```
+
+### coding_worker
+
+```markdown
+## coding_worker
+Call the `skill` tool with `{"id":"tdd-engineering"}` and apply its instructions.
+```
+
+### small_coding_agent
+
+```markdown
+## small_coding_agent
+- Execute the approved implementation only. Follow the approved layout and apply exact supplied code as instructed. Do not perform design work, reconsider approved choices, or resolve open problems.
+- If a decision is missing or instructions conflict, stop deliberating and stop work. Report `Status: blocked`, state the exact decision needed, and ask the assigning thread to provide it. Do not resume until an explicit decision is supplied.
+- Work in small, coherent steps: make the change, save it, run the relevant check, and update progress before continuing. Prioritize saved, verifiable changes over extended analysis.
+- Be concise and to the point. Report changes, check results, blockers, and the next action. Do not repeat instructions or background.
+```
+
 ## Worker-Prompt Contract
 
 Assume workers cannot see the main conversation.
@@ -189,7 +231,6 @@ Include every field below:
 <One bounded outcome, its concrete effect, and observable successful behavior.>
 
 ## Requirements and Decisions
-- <CONDITIONAL: Include only for workers implementing code changes:> Call the `skill` tool with `{"id":"tdd-engineering"}` to load the skill. Apply skill instructions throughout this assignment.
 - Applicable requirements and expectations: <...>
 - Constraints and agreed decisions: <...>
 - Approved implementation direction and applicable KISS constraints: <...>
@@ -366,7 +407,7 @@ Pass this file's path to the recovery subagent.
 
 Treat context compaction, session failure, context exhaustion, timeouts, and interrupted tool calls as recovery conditions.
 
-Mark a step complete only after its completion criteria are met and its output is saved.
+Mark a step complete only after the step meets its completion criteria and the worker saves its output.
 
 Save progress before reporting completion.
 
@@ -374,7 +415,7 @@ Do not treat partial output, a successful tool call, or a continuation marker as
 
 ### Main-Thread Actions
 
-1. **Call the recovery subagent immediately.** Make this tool call the first action, before commentary, reads, analysis, or planning. Use the approved recovery model. Pass surviving context and known references as-is, including unknowns. Use the recovery assignment below as the exception to workflow ordering, contract confirmation, and normal prompt completeness.
+1. **Call the recovery subagent immediately.** Make this tool call the first action, before commentary, reads, analysis, or planning. Use the approved recovery model. Pass surviving context and known references as-is, including unknowns. Use the recovery assignment below as the exception to workflow ordering, contract confirmation, and normal prompt completeness. Include the `any_worker` block word for word.
 2. **Route recovery follow-up directly.** For partial, blocked, failed, or disputed recovery, immediately assign the next dedicated recovery subagent. Pass the previous result and references directly. Relay explicit user questions and answers. Keep recovery interpretation, checks, and action planning inside recovery subagents.
 3. **Execute the completed handoff.** Use the concise restored control state and prepared next actions to resume orchestration.
 
@@ -386,7 +427,7 @@ Perform the entire recovery process within the subagent:
 
 1. Locate the coordination record and worker progress files from the supplied context and permitted workspace.
 2. Restore the delivery contract, confirmed decisions, unresolved decisions, model approvals, assignments, dependencies, and consultation state.
-3. Inspect relevant artifact sections and available session state. Reconcile changes after each checkpoint and validate recorded completion.
+3. Inspect relevant artifact sections and available session state. Reconcile changes after each checkpoint and check recorded completion.
 4. Identify interrupted jobs, incomplete or unverified work, and the last reliable resume point for each job.
 5. Determine which existing sessions remain usable and which need replacement. Prepare bounded continuation or replacement assignments with the required context. Preserve confirmed completed work and one active owner per output.
 6. Check the recovery result against the restored contract. Keep user-reserved decisions explicit. Save recovery evidence and remaining recovery instructions in the existing coordination and progress records.
