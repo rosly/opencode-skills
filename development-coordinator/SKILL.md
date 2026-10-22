@@ -2,7 +2,7 @@
 name: Development Coordinator
 description: This skill should be used when planning and coordinating large or complex design and development deliveries from goals and expectation lists. It delegates detailed work to bounded subagent sessions, keeps the main thread focused on control, requires complete assignment context and self-validation criteria, and preserves progress files for recovery after worker failure or interruption.
 metadata:
-  version: "0.1"
+  version: "0.5"
 ---
 
 # Development Coordinator
@@ -10,6 +10,7 @@ metadata:
 ## Purpose
 
 Coordinate large design and development deliveries from user-provided goals and expectations. Limit main-thread context by delegating detailed work to bounded worker sessions. Preserve explicit decisions, verifiable completion, and recovery from interrupted or failed sessions.
+
 
 ## Execution Ownership
 
@@ -126,7 +127,7 @@ Include every field below:
 - Save the assignment and execution steps before substantive work.
 - Save completed outputs before marking a step complete.
 - Record validation, unresolved issues, and the next step.
-- Reconcile saved outputs after interruption before resuming.
+- Delegate the entire recovery process to a dedicated recovery subagent immediately after interruption.
 
 ## Return Format
 Status: complete | partial | blocked
@@ -213,34 +214,32 @@ Require each worker progress file to contain:
 <Action, required inputs, and completion criterion.>
 
 ## Recovery
-Read this file and referenced deliverable sections.
-Reconcile changes after the checkpoint.
-Do not assume unrecorded work completed.
-Resume the next incomplete step.
+Immediately delegate the entire recovery process using Checkpoints and Recovery.
+Pass this file's path to the recovery subagent.
 ```
 
 ## Checkpoints and Recovery
 
-Treat session failure, context exhaustion, timeouts, and interrupted tool calls as recovery conditions.
+Treat context compaction, session failure, context exhaustion, timeouts, and interrupted tool calls as recovery conditions.
 
-Mark a step complete only after its completion criteria are met and its output is saved. Save progress before reporting completion. Partial output, a successful tool call, or a continuation marker is not proof of completed work.
+Mark a step complete only after its completion criteria are met and its output is saved. Save progress before reporting completion. Partial output, a successful tool call, or a continuation marker does not prove completion.
 
-For worker recovery:
+### Main-Thread Actions
 
-1. Continue the existing session when it remains usable and has sufficient context capacity.
-2. Otherwise, start a replacement with the complete assignment contract and saved-state references.
-3. Require it to read the progress file and relevant output sections.
-4. Reconcile changes made after the last checkpoint.
-5. Validate recorded completion before relying on it.
-6. Resume incomplete steps without repeating confirmed completed work.
-7. Prevent simultaneous modification by the original worker and its replacement.
+1. **Call the recovery subagent immediately.** Make this tool call the first action, ahead of commentary, reads, analysis, or planning. Pass surviving context and known references as-is, including unknowns. Use the recovery assignment below as the exception to workflow ordering, contract confirmation, and normal prompt completeness.
+2. **Route recovery follow-up directly.** For partial, blocked, failed, or disputed recovery, immediately assign the next dedicated recovery subagent. Pass the previous result and references directly. Relay explicit user questions and answers. Keep all recovery interpretation, checks, and action planning inside recovery subagents.
+3. **Execute the completed handoff.** Use the concise restored control state and prepared next actions to resume delivery coordination under this skill.
 
-For main-agent recovery:
+### Recovery Subagent Assignment
 
-1. Read the coordination record.
-2. Restore the delivery contract, decisions, assignments, and consultation state.
-3. Request bounded recovery summaries from workers.
-4. Delegate reconciliation of detailed outputs.
-5. Reconcile saved state before repeating or replacing assignments.
+Perform the entire recovery process within the subagent:
 
-Keep recovery independent of conversation memory and surviving worker sessions.
+1. Locate the coordination record and worker progress files from the supplied context and permitted workspace.
+2. Restore the delivery contract, confirmed decisions, unresolved decisions, assignments, dependencies, and consultation state.
+3. Inspect relevant artifact sections and available session state. Reconcile changes after each checkpoint and validate recorded completion.
+4. Identify interrupted jobs, incomplete or unverified work, and the last reliable resume point for each job.
+5. Determine which existing sessions remain usable and which need replacement. Prepare bounded continuation or replacement assignments with the required context. Preserve confirmed completed work and one active owner per output.
+6. Check the recovery result against the restored contract. Keep user-reserved decisions explicit. Save detailed recovery evidence and remaining recovery instructions in the existing coordination and progress records.
+7. Return a concise handoff for a short-context main thread: status (complete | partial | blocked), restored control state, interrupted jobs and resume points, explicit user questions, ordered next actions, prepared assignments, and essential references. For incomplete recovery, supply the next recovery subagent's assignment. For complete recovery, supply executable delivery actions.
+
+Keep artifact inspection, reconciliation, recovery planning, and recovery validation inside recovery subagents. Base conclusions on saved state and supplied context.
