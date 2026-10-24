@@ -1,4 +1,4 @@
-# SocratiCode Operations and Limits
+# SocratiCode Use and Limits
 
 ## Applicability
 
@@ -8,49 +8,23 @@ Treat the findings below as version-anchored guidance. The underlying research e
 
 Recheck relevant behavior when the installed version differs. Do not assume that a limitation or API shape is permanent.
 
-## Readiness
+## Project Access and First Indexing
 
-1. Discover the available SocratiCode tools.
-2. Use the installed equivalents of `codebase_about` and `codebase_health` to identify the version and service readiness.
-3. Use `codebase_status` and `codebase_graph_status` with the explicit target project path.
-4. Inspect existing context-artifact configuration and exclusions before proposing changes.
-5. Confirm that the project path identifies the intended repository or worktree.
+Use an explicit project path that identifies the intended repository or worktree. Discover the available search and analysis tools and their argument schemas.
 
-Report unavailable MCP, storage, or embedding infrastructure as a blocker. Do not install or replace those services through this skill.
+If SocratiCode reports that the project has no index, use the installed equivalent of `codebase_index` to start its first indexing operation. Observe completion through the installed status mechanism before dependent searches. Do not treat an existing but malfunctioning index as permission to index the project again.
 
-Do not assume a healthy infrastructure means that SocratiCode indexes the target project.
+Leave subsequent index and graph maintenance to SocratiCode. Do not perform installation or infrastructure checks, request refreshes or rebuilds, control watchers or indexing concurrency, or change configuration, services, or processes.
 
-## Code Index
+If MCP malfunctions, stop work and report the attempted operation and observed problem to the user. Do not diagnose or repair it. Do not infer a malfunction solely from an irrelevant or empty search result; assess the query and source evidence as part of ordinary research.
 
-Use `codebase_index` when the project has no usable index. Wait for indexing completion through the installed status mechanism before searching.
+## Project Knowledge Retrieval
 
-Use `codebase_update` for an explicit incremental refresh. Check completion and reported failures. Do not start competing update or graph-build operations for the same project.
+Treat durable project-relative `research/**/*.md` content, including `README.md` and `project-guide.md`, as project knowledge for semantic search alongside code. Leave automatic inclusion of these files and their changes to SocratiCode. Do not create a separate indexing configuration or procedure for this corpus.
 
-Use the installed graph-status and build operations when an assignment needs a missing dependency graph. Treat graph readiness separately from text-index readiness.
+After publication or an update, search for new and changed topics and compare useful results with their current source files. Check retrieved paths when topics move or are removed. Record actual queries, useful results, original-source checks, and the verification date in the corpus map.
 
-Inspect actual retrieval of a relevant source file. Do not accept readiness solely from a green status label.
-
-## Durable Corpus Index
-
-Include all durable project-relative `research/**/*.md` content, including `README.md` and `project-guide.md`.
-
-First check whether ordinary project indexing already includes those files. Verify an actual corpus result. Do not create duplicate representations merely to add a context-artifact configuration.
-
-If ordinary indexing excludes the corpus, use the installed context-artifact mechanism. Load the applicable configuration schema and documentation before editing it. Obtain approval for the required project configuration changes.
-
-Preserve existing artifact definitions and project exclusions. Keep temporary paths outside the corpus. Do not change a global indexing policy to solve a project-local need.
-
-In the studied release, `.socraticodecontextartifacts.json` defines context artifacts. Relevant operations include `codebase_context`, `codebase_context_index`, and `codebase_context_search`. Check the installed contract before constructing configuration entries.
-
-After publication or an update:
-
-- Verify which mechanism indexes each durable area.
-- Check that new and changed topics return current content.
-- Check moved and removed paths when the update includes them.
-- Record the indexed scope, mechanism, version, and verification date in the corpus map.
-- Verify that temporary execution files are outside the indexed knowledge scope.
-
-Do not claim that a named directory reference in an agent environment configures SocratiCode indexing.
+Keep temporary execution files outside `research/`. Do not accept a tool status label as evidence that a particular explanation can be retrieved.
 
 ## Retrieval Modes
 
@@ -74,9 +48,6 @@ Do not assume that frontmatter fields or Markdown links become structured relati
 - Inspect the original child file before citing directory-artifact line ranges. The studied reader concatenates files into one text stream.
 - Interpret `flow` as captured symbol relations. The studied traversal includes type references and does not constitute an execution trace.
 - Inspect same-file callers when impact reports zero files. The studied algorithm excludes the definition file from newly impacted files.
-- Check original sources after a context-artifact read failure. Source analysis indicates that a still-configured unreadable artifact can retain old chunks.
-
-The stale-context conclusion is conditional and source-derived. The research did not run an end-to-end context read-failure experiment. Do not generalize it to every indexing mechanism.
 
 ## Retrieval Acceptance
 
@@ -92,7 +63,7 @@ Require representative checks for:
 
 Record the actual query, mechanism, useful result, and original-source check. Link the retrieved topic or source. Do not copy entire tool responses into the corpus map.
 
-Investigate material retrieval failures. Do not substitute direct file access for a failed contextual-search acceptance criterion without consulting the user.
+Report unmet retrieval acceptance criteria to the user. Do not substitute direct file access for a failed contextual-search acceptance criterion without consulting the user. If the failure reveals an MCP malfunction, stop work under the rule above instead of investigating it.
 
 Do not claim measured recall, multilingual quality, or graph completeness from these representative checks.
 
@@ -104,6 +75,3 @@ Do not claim measured recall, multilingual quality, or graph completeness from t
 - [Flow traversal](https://github.com/giancarloerra/SocratiCode/blob/eb94e073cb8aa80d08fd56c8aecfe7f2fa065be8/src/services/graph-impact.ts#L497-L520)
 - [Impact traversal](https://github.com/giancarloerra/SocratiCode/blob/eb94e073cb8aa80d08fd56c8aecfe7f2fa065be8/src/services/graph-impact.ts#L340-L374)
 - [Context reading and concatenation](https://github.com/giancarloerra/SocratiCode/blob/eb94e073cb8aa80d08fd56c8aecfe7f2fa065be8/src/services/context-artifacts.ts#L254-L358)
-- [Context freshness and cleanup](https://github.com/giancarloerra/SocratiCode/blob/eb94e073cb8aa80d08fd56c8aecfe7f2fa065be8/src/services/context-artifacts.ts#L850-L918)
-- [Context search after freshness checks](https://github.com/giancarloerra/SocratiCode/blob/eb94e073cb8aa80d08fd56c8aecfe7f2fa065be8/src/tools/context-tools.ts#L154-L169)
-- [Incremental file updates](https://github.com/giancarloerra/SocratiCode/blob/eb94e073cb8aa80d08fd56c8aecfe7f2fa065be8/src/services/indexer.ts#L1734-L1913)

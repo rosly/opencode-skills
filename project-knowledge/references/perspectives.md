@@ -15,7 +15,7 @@ Distinguish breadth from depth in the corpus map. Mark a subject as mapped, exam
 - Identify authoritative sources for behavior, public contracts, data, execution, and historical decisions.
 - Record source revisions, dirty-source qualifications, and limits of the available history.
 - Link perspective topics and the onboarding guide.
-- Record coverage, known gaps, and actual indexing verification.
+- Record coverage, known gaps, and actual retrieval verification.
 
 Do not duplicate the detailed argument or evidence of a topic here.
 

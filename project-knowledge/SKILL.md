@@ -2,7 +2,7 @@
 name: Project Knowledge
 description: This skill should be used to build or explicitly update a project's searchable knowledge corpus and onboarding guide. It combines an existing SocratiCode installation with durable Markdown in research/. It covers functional behavior, concepts, architecture, cross-component flows, data lifecycles, historical rationale, and development navigation. It extends development-coordinator-simplified for execution and verification.
 metadata:
-  version: "1.2"
+  version: "1.3"
 ---
 
 # Project Knowledge
@@ -13,11 +13,11 @@ Build a durable knowledge corpus for a person and an agent learning or working o
 
 Support two modes: build and update. Run either mode only on explicit request. Do not start maintenance merely because another task changes code.
 
-Require an existing, usable SocratiCode installation. Prepare project and corpus indexing through that installation. Report missing infrastructure as a blocker. Do not install services or select embedding infrastructure.
+Use SocratiCode to search and analyze the project. If the project has no index, start its first indexing operation. Do not perform administrative operations after the first indexing. Do not check installation or diagnose infrastructure. Do not request index refreshes or graph rebuilds, control watchers, or change tool configuration or processes. If MCP malfunctions, stop work and report the observed problem to the user. Do not diagnose or attempt to repair it.
 
 Keep the corpus in English. Write the onboarding guide in the user's language, unless the user specifies another language. Preserve original symbol names and exact quotations.
 
-Limit project changes to approved knowledge files and indexing configuration. Do not implement application changes. Do not add a second code index, SQL database, or graph store.
+Limit project changes to approved knowledge files. Do not implement application changes. Do not add a second code index, SQL database, or graph store.
 
 ## Coordinator Integration
 
@@ -32,7 +32,7 @@ Do not invoke a second research workflow that introduces competing coordination 
 ## Required Resources
 
 - Read [perspectives.md](references/perspectives.md) when defining research coverage and writing assignments.
-- Read [socraticode.md](references/socraticode.md) before assigning infrastructure checks, indexing, or retrieval verification.
+- Read [socraticode.md](references/socraticode.md) before using SocratiCode or assigning retrieval verification.
 - Use [corpus-map-template.md](assets/corpus-map-template.md) for `research/README.md`.
 - Use [topic-template.md](assets/topic-template.md) for perspective topics.
 - Use [project-guide-template.md](assets/project-guide-template.md) for `research/project-guide.md`.
@@ -49,7 +49,6 @@ Confirm the following through the coordinator's consultation procedure. Reuse de
 - Confirm the target revision and treatment of uncommitted changes.
 - Confirm allowed repository trees, historical material, external sources, and earlier research.
 - Confirm the local-language guide and English corpus.
-- Confirm permitted indexing-configuration changes.
 - Confirm steering and worker models through the coordinator.
 
 Map the entire agreed scope. Deepen its main scenarios, cross-cutting mechanisms, and material uncertainties. Propose those subjects after reconnaissance. Consult when the proposal changes the agreed scope or deliverable.
@@ -83,7 +82,7 @@ If the source is not versioned, record that limitation explicitly. For dirty wor
 
 Use ordinary relative Markdown links for corpus navigation. Give materially reused claims stable heading anchors. Preserve topic IDs and claim anchors during updates. Update inbound links when moving files.
 
-Index all durable Markdown in `research/`, including its map and guide. Do not publish templates, execution logs, unfinished drafts, or checkpoint files there.
+Treat durable Markdown in `research/`, including its map and guide, as project knowledge intended for semantic search alongside code. Leave automatic inclusion of these files and their changes to SocratiCode. Do not create a separate indexing configuration or procedure for `research/`. Do not publish templates, execution logs, unfinished drafts, or checkpoint files there.
 
 ## Evidence and Cross-References
 
@@ -120,7 +119,7 @@ Assign reconnaissance of the project, existing documentation, requirements, deci
 
 Require an explicit version anchor and a concern-based source-authority map. Check for shallow Git history. Use permitted upstream sources when local history is insufficient.
 
-Assign the readiness and indexing checks in `references/socraticode.md`. Finish source-code indexing before dependent retrieval assignments.
+Use SocratiCode as described in `references/socraticode.md`. If the project has no index, start its first indexing operation and wait for completion before dependent retrieval assignments.
 
 Produce a durable corpus map and an initial glossary. Record the subjects selected for deeper analysis and the known coverage gaps.
 
@@ -146,7 +145,7 @@ Link substantive guide sections to the relevant corpus topics and claim anchors.
 
 ### Publish and Verify Retrieval
 
-Index the durable corpus using the approved configuration. Follow the publication checks in `references/socraticode.md`.
+Verify retrieval of the durable corpus through SocratiCode. Follow the retrieval checks in `references/socraticode.md`.
 
 Require representative questions about code, a corpus explanation, a cross-perspective mechanism, and a historical rationale. Record actual queries, relevant results, and original-source checks in the corpus map.
 
@@ -161,10 +160,9 @@ Start only on a request to update the corpus. Read its current map and topic anc
 3. Reevaluate affected claims against current authoritative sources. Review unchanged linked topics when responsibility or terminology changes.
 4. Preserve still-valid history. Replace outdated current explanations without presenting old behavior as current. Preserve topic IDs and reused claim anchors.
 5. Update the affected guide sections and corpus map. Record the reviewed scope. Do not imply a new review of untouched topics.
-6. Refresh code and corpus indexes through the installed tools. Handle removed or moved files explicitly.
-7. Verify changed claims, cross-topic consistency, links, guide alignment, and retrieval for the affected scope.
+6. Verify changed claims, cross-topic consistency, links, guide alignment, and retrieval for the affected scope.
 
-Distinguish index refresh from semantic review. A changed source triggers reevaluation, not automatic rejection of every dependent claim. Do not rewrite a historical rationale merely because the current implementation changed.
+Do not treat automatic inclusion of changed files as a semantic review. A changed source triggers reevaluation, not automatic rejection of every dependent claim. Do not rewrite a historical rationale merely because the current implementation changed.
 
 ## Acceptance and Delivery
 
@@ -176,10 +174,10 @@ Require verification evidence for all of the following:
 - Resolve material contradictions and state the impact of remaining coverage gaps.
 - Keep perspective explanations and the translated guide consistent.
 - Keep durable outputs in `research/` and temporary outputs outside its index.
-- Confirm that SocratiCode indexes code and durable Markdown and returns them in search results.
+- Demonstrate that SocratiCode returns code and durable Markdown in search results.
 - Demonstrate retrieval from representative questions to topics, claims, and original versioned sources.
 - For updates, verify the changed scope and describe what was not reviewed.
 
 Do not equate a green index, a set of generated files, or a worker's completion claim with acceptance.
 
-Deliver the corpus and guide paths, version anchor, indexed scope, verification results, and remaining limitations. Report blocked indexing or material evidence gaps without claiming full completion.
+Deliver the corpus and guide paths, version anchor, retrieval verification scope and results, and remaining limitations. If MCP malfunctions, stop work and report the observed problem without claiming full completion. Report material evidence gaps without claiming full completion.

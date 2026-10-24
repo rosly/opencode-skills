@@ -40,14 +40,10 @@ Link all durable topics. Explain any perspective that is not applicable. Use thi
 
 Link [the guide](project-guide.md). Explain its intended reading path and relationship to the detailed corpus.
 
-## Indexing and Retrieval Verification
+## Retrieval Verification
 
-- SocratiCode version: <reported runtime version>
-- Indexed project path: <explicit path>
-- Code indexing: <mechanism, scope, and checked completion>
-- Corpus indexing: <mechanism, included paths, and checked completion>
+- Project path: <explicit path used for retrieval>
 - Verification date: <YYYY-MM-DD>
-- Temporary-file exclusion: <verified scope boundary>
 
 | Actual question | Retrieval mechanism | Useful result | Original-source check |
 |---|---|---|---|
