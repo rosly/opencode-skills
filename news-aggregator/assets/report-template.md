@@ -1,33 +1,34 @@
-# {Report title — area and date}
+# {Tytuł raportu — zakres i data}
 
-Profile: {profile file path, or "no profile — average resident of {COUNTRY}"}
+Profil: {ścieżka do pliku profilu}
 
-## H1 — today or tomorrow
+## H1 — dziś lub jutro
 
-### {N}. {Event title}
-- **What:** {1–3 sentences with the key facts and the status of the event}
-- **Impact on you:**
-  - {Aspect}: {concrete effect} ({direct | indirect})
-- **Basis in profile:** {profile fields used; missing fields}
-- **Uncertainty:** {speculative items that the assessment depends on, or "none"}
-- **Sources:** {Outlet 1, Outlet 2, Outlet 3}
+### {N}. {Nagłówek newsa}
+- **Co podają źródła:** {1–3 zdania z przypisaniem do źródeł lub środowisk źródeł, z podanym statusem sprawy}
+- **Różne ujęcia:** {różnice między mediami albo "źródła zgodne"}
+- **Wpływ na Ciebie:**
+  - {Aspekt}: {konkretny skutek} ({bezpośredni | pośredni})
+- **Podstawa w profilu:** {użyte pola profilu; brakujące pola}
+- **Niepewność:** {twierdzenia jednego źródła, sporne lub brakujące, od których zależy ocena, albo "brak"}
+- **Źródła:** {Medium 1, Medium 2, Medium 3}
 
-## H2 — up to one month
+## H2 — do miesiąca
 
-{same structure}
+{ta sama struktura}
 
-## H3 — up to one year
+## H3 — do roku
 
-{same structure}
+{ta sama struktura}
 
-## H4 — 1–5 years
+## H4 — 1–5 lat
 
-{same structure}
+{ta sama struktura}
 
-## H5 — more than 5 years, or context only
+## H5 — ponad 5 lat albo tylko kontekst
 
-{same structure}
+{ta sama struktura}
 
-## Summary
+## Podsumowanie
 
-{The 1–3 events that matter most for you, and the reason for each.}
+{1–3 newsy najważniejsze dla Ciebie i powód dla każdego.}

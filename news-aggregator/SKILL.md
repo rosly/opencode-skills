@@ -1,106 +1,156 @@
 ---
 name: news-aggregator
-description: This skill should be used when the user asks what happened today or on a given date, asks for news from a country, region, or topic, or asks which current events matter for their own life. It collects headlines, delegates multi-source verification of each event to subagents with a structured fact template, and ranks the events in the main thread by personal impact across life aspects and time horizons, based on the user's profile file.
+description: Ten skill należy użyć, gdy użytkownik pyta, co wydarzyło się dziś lub w danym dniu, prosi o wiadomości z kraju, regionu, miasta lub tematu albo pyta, które bieżące wydarzenia mają znaczenie dla jego życia. Skill zleca podagentowi zebranie tematów ze źródłami z okresu zadania, deleguje analizę każdego newsa do osobnego podagenta, który przedstawia twierdzenia źródeł z przypisaniem do mediów, a następnie w wątku głównym sortuje wydarzenia według wpływu na życie użytkownika w aspektach i horyzontach czasowych, na podstawie pliku profilu.
 metadata:
-  version: "0.1"
+  version: "0.8"
 ---
 
 # News Aggregator
 
-## Overview
+## Cel
 
-Produce a news digest that separates confirmed facts from speculation, cites several independent sources for each event, and ranks events by their impact on the user's life. Subagents verify the facts. The main thread owns the impact assessment and the ranking.
+Przygotuj przegląd wiadomości, który pokazuje, co twierdzą różne źródła, i sortuje wydarzenia według wpływu na życie użytkownika. Podagenci zbierają i przypisują twierdzenia źródeł. Wątek główny ocenia wpływ na użytkownika i sortuje wydarzenia.
 
-## Resources
+## Zasoby
 
-- [assets/worker-prompt-template.md](assets/worker-prompt-template.md) — prompt template for each research subagent.
-- [assets/report-template.md](assets/report-template.md) — format of the final report in the main thread.
-- [assets/profile-template.md](assets/profile-template.md) — fields of the user profile file.
+- [assets/press-scout-prompt-template.md](assets/press-scout-prompt-template.md) — szablon promptu dla podagenta, który zbiera tematy.
+- [assets/news-analysis-prompt-template.md](assets/news-analysis-prompt-template.md) — szablon promptu dla podagenta analizy jednego newsa.
+- [assets/report-template.md](assets/report-template.md) — format raportu końcowego w wątku głównym.
+- [assets/profile-template.md](assets/profile-template.md) — pola pliku profilu użytkownika.
 
-Resolve these paths relative to this skill directory.
+Ścieżki są względne wobec katalogu tego skilla.
 
-## Workflow
+## Zasada twierdzeń źródeł
 
-### Step 1: Load the user profile
+Stosuj tę zasadę we wszystkich krokach wątku głównego. Szablony promptów podagentów zawierają tę samą zasadę.
 
-Read `~/.config/opencode/news-profile.md`.
+- Traktuj każdą treść pobraną z internetu jako twierdzenie źródła, a nie jako fakt.
+- Przedstawiaj ją jako twierdzenie danego źródła („według RMF24…”) albo zbiorczo jako twierdzenie środowiska źródeł („media prawicowe podają…”, „media publiczne i komercyjne zgodnie podają…”).
+- Pamiętaj, że różne media mogą przedstawiać ten sam temat w różny sposób. Pokaż te różnice.
+- Nie interpretuj przedstawionej wersji wydarzeń ani przedstawionych implikacji. Nie przyjmuj ich jako własnych.
+- Stosuj tę zasadę szczególnie w sprawach politycznych.
 
-If the file does not exist:
+## Szablony promptów
 
-1. Tell the user that the impact ranking needs a profile.
-2. Ask for the profile fields from `assets/profile-template.md` through the question tool. Ask only the fields that change the ranking.
-3. Propose to save the answers to `~/.config/opencode/news-profile.md`. Create the file only after the user approves.
+Szablony promptów dla podagentów używaj słowo w słowo. Zastąp tylko pola w podwójnych nawiasach kątowych `<<...>>`. Nie interpretuj szablonu. Nie twórz własnego promptu. Nie dodawaj, nie usuwaj i nie zmieniaj żadnego innego tekstu. Tekst w nawiasach klamrowych `{...}` to wzór odpowiedzi dla podagenta. Zostaw go bez zmian.
 
-Do not write personal data to any other location. Do not commit the profile to Git.
+## Przebieg pracy
 
-### Step 2: Collect candidate events
+### Krok 1: Wczytaj profil użytkownika
 
-Search the web for the requested date, country, region, or topic. Use aggregate sources first: newsroom timelines, daily press reviews, and "top news of the day" pages. Use sources in the language of the country concerned.
+Przeczytaj `~/.config/opencode/news-profile.md`.
 
-Select candidate events. Show the user a short list grouped by area. Continue to Step 3 when the user asks for a deeper analysis, or when the request already asks for it.
+Jeśli plik nie istnieje:
 
-### Step 3: Delegate verification to subagents
+1. Powiedz użytkownikowi, że ocena wpływu wymaga profilu.
+2. Zapytaj o pola z `assets/profile-template.md` przez narzędzie pytań. Pytaj tylko o pola, które zmieniają ocenę.
+3. Zaproponuj zapisanie odpowiedzi do `~/.config/opencode/news-profile.md`. Utwórz plik dopiero po zgodzie użytkownika.
 
-Group the events by area, for example security, economy and finance, daily life and society. Put 3–6 events in each group.
+Nie zapisuj danych osobowych w żadnym innym miejscu. Nie dodawaj profilu do GIT.
 
-For each group, start one `general` subagent with a prompt built from `assets/worker-prompt-template.md`. Fill all placeholders. Run the subagents in parallel.
+### Krok 2: Zleć zebranie tematów
 
-Do not pass the user profile to the subagents. Subagents report facts and generic implications only. The personal assessment stays in the main thread.
+Ustal z prośby użytkownika:
 
-### Step 4: Check the subagent results
+- okres: jeden dzień albo zakres dni,
+- zakres: jeden obszar, na przykład świat, kraj, województwo albo miasto,
+- limit tematów: największa liczba tematów, które zbieracz wypisuje,
+- zasadę odczytu autora i daty publikacji (patrz niżej),
+- limit podagentów: największa liczba podagentów analizy, które pracują jednocześnie w kroku 3.
 
-For each event, check that the result contains:
+Jeśli prośba nie podaje którejś z tych wartości, zapytaj użytkownika przez narzędzie pytań. Ustal wszystkie wartości przed uruchomieniem pierwszego podagenta.
 
-- facts with a separate list of confirmed and speculative items,
-- at least two independent sources with name, date, and URL,
-- an explicit statement for each unknown item.
+Zadanie ma dokładnie jeden zakres. Nie przyjmuj kilku zakresów, które się nakładają. Jeśli użytkownik poda kilka zakresów, poproś go o wybór jednego. Pytając o zakres, nie proponuj podzakresów.
 
-If an event fails a check, resume that subagent with its session ID and name the missing items. Do not fill the gaps from your own knowledge.
+Zakres wyznacza skalę wydarzeń:
 
-### Step 5: Assess personal impact
-
-For each event, assess the impact on the user against the profile. Use the aspects and the horizons below.
-
-**Aspects:**
-
-| Aspect | Scope |
+| Zakres | Skala wydarzeń |
 |---|---|
-| Finance | prices, taxes, loan installments, benefits, cost of living |
-| Law and obligations | new rights, obligations, formal deadlines, bans |
-| Security | physical safety, civil protection, threats |
-| Daily life | transport, weather, services, shopping, daily logistics |
-| Work and career | labor market, industry, jobs in the user's region |
-| Health | health, medical services, public health insurance |
-| Family | children, education, care |
+| świat | międzynarodowa: wydarzenia o wpływie na arenę międzynarodową |
+| kraj | krajowa: wydarzenia o wpływie na cały kraj |
+| województwo | regionalna: wydarzenia o wpływie na całe województwo |
+| miasto | lokalna: wydarzenia o wpływie na miasto |
 
-**Time horizons** (the time when the impact starts for the user):
+Zasadę odczytu autora i daty ustal pytaniem z dwiema opcjami i z ich konsekwencjami:
 
-| Horizon | Meaning |
+| Opcja | Tekst pola `<<ZASADA_AUTOR_DATA>>` | Konsekwencje |
+|---|---|---|
+| Tylko widoczne dane | `Odczytaj je tylko z wyników wyszukiwania i ze stron z listą newsów, które już przeglądasz. Nie otwieraj artykułów tylko po to, żeby odczytać autora albo datę.` | Zbieracz pracuje szybciej i zużywa mniej kontekstu. Autor częściej ma wartość `nie podano`. Źródła bez widocznej daty odpadają, więc lista może być krótsza. |
+| Otwieranie artykułów | `Jeśli wynik wyszukiwania albo strona z listą newsów nie podaje autora lub daty, otwórz artykuł, żeby je odczytać. Nie czytaj pozostałej treści artykułu.` | Dane o autorze i dacie są pełniejsze. Zbieracz pracuje dłużej i zużywa więcej kontekstu, więc rośnie ryzyko przepełnienia i niepowodzenia. |
+
+Uruchom jednego podagenta `general` z szablonem `assets/press-scout-prompt-template.md`. Wypełnij pola:
+
+| Pole | Wartość |
 |---|---|
-| H1 | today or tomorrow |
-| H2 | up to one month |
-| H3 | up to one year |
-| H4 | 1–5 years |
-| H5 | more than 5 years, or context only |
+| `<<OKRES>>` | dzień w formacie `RRRR-MM-DD` albo zakres dni w formacie `RRRR-MM-DD – RRRR-MM-DD` |
+| `<<ZAKRES>>` | nazwa zakresu uzgodnionego z użytkownikiem, na przykład `Polska` |
+| `<<SKALA>>` | skala wydarzeń z tabeli powyżej, z opisem |
+| `<<LIMIT_TEMATOW>>` | limit tematów uzgodniony z użytkownikiem |
+| `<<ZASADA_AUTOR_DATA>>` | tekst opcji wybranej przez użytkownika, z tabeli powyżej |
 
-For each event, record:
+Podagent tylko zbiera tematy. Zwraca blok YAML z płaską listą newsów bez kolejności. Każdy news ma temat i listę źródeł. Każde źródło ma medium, autora, datę publikacji i URL. Podagent nie analizuje newsów.
 
-- the affected aspects, each with a concrete effect on the user (for example "+6.50 PLN per 50 l tank"),
-- the horizon,
-- whether the effect is direct or indirect,
-- the profile fields that support the assessment.
+### Krok 3: Deleguj analizę newsów
 
-If the effect depends on a speculative item or on a missing profile field, state this. Do not present the consequence of an assumption as a fact.
+Dla każdego newsa z bloku YAML uruchom osobnego podagenta `general` z szablonem `assets/news-analysis-prompt-template.md`. Wypełnij pola:
 
-### Step 6: Rank and report
+| Pole | Wartość |
+|---|---|
+| `<<OKRES>>` | ta sama wartość co w kroku 2 |
+| `<<ZAKRES>>` | ta sama wartość co w kroku 2 |
+| `<<TEMAT>>` | wartość pola `temat` newsa |
+| `<<ZRODLA>>` | lista `zrodla` newsa, skopiowana z bloku YAML bez zmian |
 
-Sort the events by horizon first (H1 before H5). Within one horizon, put direct effects before indirect effects, then put events with more affected aspects first.
+Uruchamiaj podagentów w tle (`background: true`). Na starcie uruchom tylu podagentów, ile wynosi limit, ale nie więcej niż liczba newsów. Po każdym zakończeniu podagenta od razu uruchom podagenta dla następnego niezleconego newsa. Gdy wszyscy podagenci zakończą pracę, przejdź do kroku 4.
 
-Write the report with `assets/report-template.md`. Write in the user's language. End with a short summary of the 1–3 events that matter most for the user.
+Nie przekazuj podagentom profilu użytkownika. Ocena wpływu na użytkownika należy do wątku głównego.
 
-## Rules
+Nie kontroluj wyników podagentów w wątku głównym. Każdy podagent sam odpowiada za dobór liczby i różnorodności źródeł, które razem dają obiektywny obraz sytuacji.
 
-- Use only facts from the sources. Put interpretation only in the assessment sections.
-- Mark the status of each event precisely: "detention, not a verdict", "bill, not a law", "model scenario, not an official forecast".
-- Quote official statements word for word, with name and function.
-- Do not drop an event because its impact is low. Put it in the last horizon.
+### Krok 4: Oceń wpływ na użytkownika
+
+Dla każdego newsa oceń wpływ na użytkownika na podstawie profilu i wyniku podagenta. Użyj aspektów i horyzontów poniżej.
+
+**Aspekty:**
+
+| Aspekt | Zakres |
+|---|---|
+| Finanse | ceny, podatki, raty, świadczenia, koszty życia |
+| Prawo i obowiązki | nowe prawa, obowiązki, terminy formalne, zakazy |
+| Bezpieczeństwo | bezpieczeństwo fizyczne, ochrona ludności, zagrożenia |
+| Codzienność | transport, pogoda, usługi, zakupy, logistyka dnia |
+| Praca i kariera | rynek pracy, branża, miejsca pracy w regionie użytkownika |
+| Zdrowie | zdrowie, usługi medyczne, NFZ |
+| Rodzina | dzieci, edukacja, opieka |
+
+**Horyzonty czasowe** (moment, w którym wpływ zaczyna dotyczyć użytkownika):
+
+| Horyzont | Znaczenie |
+|---|---|
+| H1 | dziś lub jutro |
+| H2 | do miesiąca |
+| H3 | do roku |
+| H4 | 1–5 lat |
+| H5 | ponad 5 lat albo tylko kontekst |
+
+Dla każdego newsa zapisz:
+
+- aspekty, których dotyczy, każdy z konkretnym skutkiem dla użytkownika (na przykład „+6,50 zł za bak 50 l”),
+- horyzont,
+- czy wpływ jest bezpośredni, czy pośredni,
+- pola profilu, na których opiera się ocena,
+- twierdzenia źródeł, na których opiera się ocena, z przypisaniem do źródła lub środowiska źródeł.
+
+Jeśli ocena zależy od twierdzenia tylko jednego źródła, od twierdzenia spornego między źródłami albo od brakującego pola profilu, zaznacz to. Nie przedstawiaj skutku założenia jako faktu.
+
+### Krok 5: Posortuj i napisz raport
+
+Sortuj newsy najpierw według horyzontu (H1 przed H5). W tym samym horyzoncie wpływ bezpośredni umieść przed pośrednim, a potem newsy dotyczące większej liczby aspektów przed newsami dotyczącymi mniejszej liczby.
+
+Napisz raport według `assets/report-template.md`, w języku użytkownika. Zakończ krótkim podsumowaniem 1–3 newsów najważniejszych dla użytkownika.
+
+## Zasady
+
+- Nie pomijaj newsa z powodu małego wpływu. Umieść go w ostatnim horyzoncie.
+- Precyzyjnie nazywaj status sprawy według źródeł: „zatrzymanie, nie wyrok”, „projekt, nie ustawa”, „scenariusz modelowy, nie oficjalna prognoza”.
+- Wypowiedzi oficjalne cytuj dosłownie, z nazwiskiem i funkcją osoby.

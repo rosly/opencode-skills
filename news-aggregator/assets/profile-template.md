@@ -1,35 +1,35 @@
-# News profile
+# Profil wiadomości
 
-Fill in only the fields that you want to use. Leave the other fields empty.
+Wypełnij tylko pola, których chcesz używać. Pozostałe pola zostaw puste.
 
-## Location
-- Country:
-- Region / province:
-- City or rural area:
+## Lokalizacja
+- Kraj:
+- Region / województwo:
+- Miasto lub obszar wiejski:
 
-## Household
-- Household members (adults, children with age):
-- Pets or livestock:
+## Gospodarstwo domowe
+- Członkowie gospodarstwa (dorośli, dzieci z wiekiem):
+- Zwierzęta domowe lub gospodarskie:
 
 ## Transport
-- Car (fuel type: Pb95, Pb98, diesel, LPG, electric):
-- Public transport (yes / no, which):
-- Regular travel (commute, flights):
+- Samochód (paliwo: Pb95, Pb98, diesel, LPG, elektryczny):
+- Transport publiczny (tak / nie, jaki):
+- Regularne podróże (dojazdy, loty):
 
-## Work
-- Profession / industry:
-- Employment form (employee, self-employed, retired, student):
-- Employer sector (public, private):
+## Praca
+- Zawód / branża:
+- Forma zatrudnienia (etat, działalność gospodarcza, emerytura, nauka):
+- Sektor pracodawcy (publiczny, prywatny):
 
-## Housing and finance
-- Housing (owned, rented, mortgage):
-- Loan rate (fixed, variable):
-- Investments or savings that matter (optional):
+## Mieszkanie i finanse
+- Mieszkanie (własne, wynajem, kredyt hipoteczny):
+- Oprocentowanie kredytu (stałe, zmienne):
+- Ważne inwestycje lub oszczędności (opcjonalnie):
 
-## Health
-- Public or private health care:
-- Regular medical needs (optional):
+## Zdrowie
+- Opieka zdrowotna publiczna lub prywatna:
+- Stałe potrzeby medyczne (opcjonalnie):
 
-## Interests
-- Topics to follow:
-- Topics to skip:
+## Zainteresowania
+- Tematy do śledzenia:
+- Tematy do pominięcia:
