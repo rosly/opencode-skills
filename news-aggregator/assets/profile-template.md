@@ -1,6 +1,9 @@
 # Profil wiadomości
 
-Wypełnij tylko pola, których chcesz używać. Pozostałe pola zostaw puste.
+Wypełnij pole „Jak mam Cię nazywać”, używane do nazwania katalogu opracowania. Pozostałe pola wypełnij tylko wtedy, gdy chcesz ich używać.
+
+## Nazwa użytkownika
+- Jak mam Cię nazywać:
 
 ## Lokalizacja
 - Kraj:

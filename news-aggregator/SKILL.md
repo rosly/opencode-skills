@@ -1,21 +1,22 @@
 ---
 name: news-aggregator
-description: Ten skill należy użyć, gdy użytkownik pyta, co wydarzyło się dziś lub w danym dniu, prosi o wiadomości z kraju, regionu, miasta lub tematu albo pyta, które bieżące wydarzenia mają znaczenie dla jego życia. Skill zleca podagentowi zebranie tematów ze źródłami z okresu zadania, deleguje analizę każdego newsa do osobnego podagenta, który przedstawia twierdzenia źródeł z przypisaniem do mediów, a następnie w wątku głównym sortuje wydarzenia według wpływu na życie użytkownika w aspektach i horyzontach czasowych, na podstawie pliku profilu.
+description: Ten skill należy użyć, gdy użytkownik pyta o wiadomości z danego okresu lub obszaru albo o ich wpływ na jego życie. Skill deleguje zebranie tematów, analizę każdego newsa do pliku Markdown oraz przygotowanie osobnego raportu z oceną wpływu na użytkownika. Wątek główny przekazuje listę plików podagentowi oceniającemu i otwiera gotowy raport.
 metadata:
-  version: "0.8"
+  version: "0.10"
 ---
 
 # News Aggregator
 
 ## Cel
 
-Przygotuj przegląd wiadomości, który pokazuje, co twierdzą różne źródła, i sortuje wydarzenia według wpływu na życie użytkownika. Podagenci zbierają i przypisują twierdzenia źródeł. Wątek główny ocenia wpływ na użytkownika i sortuje wydarzenia.
+Przygotuj przegląd wiadomości, który pokazuje, co twierdzą różne źródła, i sortuje wydarzenia według wpływu na życie użytkownika. Deleguj zebranie tematów, analizę newsów oraz ocenę i podsumowanie. W wątku głównym koordynuj pracę i otwórz raport. Nie czytaj opracowań newsów ani nie oceniaj ich samodzielnie.
 
 ## Zasoby
 
 - [assets/press-scout-prompt-template.md](assets/press-scout-prompt-template.md) — szablon promptu dla podagenta, który zbiera tematy.
 - [assets/news-analysis-prompt-template.md](assets/news-analysis-prompt-template.md) — szablon promptu dla podagenta analizy jednego newsa.
-- [assets/report-template.md](assets/report-template.md) — format raportu końcowego w wątku głównym.
+- [assets/news-summary-prompt-template.md](assets/news-summary-prompt-template.md) — szablon promptu dla podagenta oceniającego i podsumowującego.
+- [assets/report-template.md](assets/report-template.md) — format raportu końcowego dla podagenta oceniającego.
 - [assets/profile-template.md](assets/profile-template.md) — pola pliku profilu użytkownika.
 
 Ścieżki są względne wobec katalogu tego skilla.
@@ -46,7 +47,7 @@ Jeśli plik nie istnieje:
 2. Zapytaj o pola z `assets/profile-template.md` przez narzędzie pytań. Pytaj tylko o pola, które zmieniają ocenę.
 3. Zaproponuj zapisanie odpowiedzi do `~/.config/opencode/news-profile.md`. Utwórz plik dopiero po zgodzie użytkownika.
 
-Nie zapisuj danych osobowych w żadnym innym miejscu. Nie dodawaj profilu do GIT.
+Przeczytaj z profilu pole „Jak mam Cię nazywać”. Jeśli go brakuje, zapytaj użytkownika. Użyj tej wartości jako nazwy katalogu użytkownika opisanej w kroku 2. Nie kopiuj profilu do katalogu opracowania. Nie dodawaj profilu do GIT.
 
 ### Krok 2: Zleć zebranie tematów
 
@@ -60,7 +61,11 @@ Ustal z prośby użytkownika:
 
 Jeśli prośba nie podaje którejś z tych wartości, zapytaj użytkownika przez narzędzie pytań. Ustal wszystkie wartości przed uruchomieniem pierwszego podagenta.
 
+Utwórz katalog opracowania `/tmp/opencode/<użytkownik>/news-<zakres>-RR-MM-DD-GG-MM-SS/`. Wartość `<użytkownik>` odczytaj z pola „Jak mam Cię nazywać” w profilu. Zapisz zakres małymi literami, bez polskich znaków, ze słowami połączonymi myślnikami. Data i godzina oznaczają moment rozpoczęcia zadania w strefie Europe/Warsaw. Wszystkie opracowania newsów i raport końcowy zapisuj w tym katalogu.
+
 Zadanie ma dokładnie jeden zakres. Nie przyjmuj kilku zakresów, które się nakładają. Jeśli użytkownik poda kilka zakresów, poproś go o wybór jednego. Pytając o zakres, nie proponuj podzakresów.
+
+Nie rozszerzaj wybranego zakresu o przeglądy jego części. „Świat” oznacza wiadomości o skali globalnej, a nie osobne przeglądy krajów. „Polska” oznacza wiadomości krajowe, a nie osobne przeglądy województw. Analogicznie traktuj województwo i miasto.
 
 Zakres wyznacza skalę wydarzeń:
 
@@ -90,6 +95,8 @@ Uruchom jednego podagenta `general` z szablonem `assets/press-scout-prompt-templ
 
 Podagent tylko zbiera tematy. Zwraca blok YAML z płaską listą newsów bez kolejności. Każdy news ma temat i listę źródeł. Każde źródło ma medium, autora, datę publikacji i URL. Podagent nie analizuje newsów.
 
+Nie zlecaj zbieraczowi uzasadniania wyboru tematów, oceniania ich znaczenia ani uzupełniania źródeł. Ma zaraportować znalezione wzmianki. Pogłębianie tematów na tym etapie zużywa kontekst i może uniemożliwić zwrócenie wyniku. Analizę zlecaj dopiero w kroku 3.
+
 ### Krok 3: Deleguj analizę newsów
 
 Dla każdego newsa z bloku YAML uruchom osobnego podagenta `general` z szablonem `assets/news-analysis-prompt-template.md`. Wypełnij pola:
@@ -100,57 +107,33 @@ Dla każdego newsa z bloku YAML uruchom osobnego podagenta `general` z szablonem
 | `<<ZAKRES>>` | ta sama wartość co w kroku 2 |
 | `<<TEMAT>>` | wartość pola `temat` newsa |
 | `<<ZRODLA>>` | lista `zrodla` newsa, skopiowana z bloku YAML bez zmian |
+| `<<KATALOG_OPRACOWANIA>>` | pełna ścieżka katalogu opracowania z kroku 2 |
 
 Uruchamiaj podagentów w tle (`background: true`). Na starcie uruchom tylu podagentów, ile wynosi limit, ale nie więcej niż liczba newsów. Po każdym zakończeniu podagenta od razu uruchom podagenta dla następnego niezleconego newsa. Gdy wszyscy podagenci zakończą pracę, przejdź do kroku 4.
 
-Nie przekazuj podagentom profilu użytkownika. Ocena wpływu na użytkownika należy do wątku głównego.
+Każdy podagent zapisuje opracowanie do pliku Markdown w katalogu opracowania. Zwraca tylko YAML z polami `tytul` i `plik`. Tytuł ma być poprawionym, obiektywnym tytułem newsa. Nazwa pliku ma odpowiadać tytułowi: małe litery, bez polskich znaków, słowa połączone myślnikami, rozszerzenie `.md`.
 
-Nie kontroluj wyników podagentów w wątku głównym. Każdy podagent sam odpowiada za dobór liczby i różnorodności źródeł, które razem dają obiektywny obraz sytuacji.
+Zbieraj odpowiedzi YAML w jedną listę. Nie wczytuj plików opracowań ani nie kontroluj ich treści. Każdy podagent sam odpowiada za dobór liczby i różnorodności źródeł. Nie przekazuj analitykom profilu użytkownika.
 
-### Krok 4: Oceń wpływ na użytkownika
+### Krok 4: Zleć ocenę i podsumowanie
 
-Dla każdego newsa oceń wpływ na użytkownika na podstawie profilu i wyniku podagenta. Użyj aspektów i horyzontów poniżej.
+Po zebraniu całej listy plików uruchom jednego osobnego podagenta `general` z szablonem `assets/news-summary-prompt-template.md`. Użyj szablonu słowo w słowo. Wypełnij pola:
 
-**Aspekty:**
-
-| Aspekt | Zakres |
+| Pole | Wartość |
 |---|---|
-| Finanse | ceny, podatki, raty, świadczenia, koszty życia |
-| Prawo i obowiązki | nowe prawa, obowiązki, terminy formalne, zakazy |
-| Bezpieczeństwo | bezpieczeństwo fizyczne, ochrona ludności, zagrożenia |
-| Codzienność | transport, pogoda, usługi, zakupy, logistyka dnia |
-| Praca i kariera | rynek pracy, branża, miejsca pracy w regionie użytkownika |
-| Zdrowie | zdrowie, usługi medyczne, NFZ |
-| Rodzina | dzieci, edukacja, opieka |
+| `<<OKRES>>` | okres publikacji uzgodniony w kroku 2 |
+| `<<ZAKRES>>` | zakres uzgodniony w kroku 2 |
+| `<<KATALOG_OPRACOWANIA>>` | pełna ścieżka katalogu opracowania |
+| `<<LISTA_NEWSOW>>` | lista wszystkich odpowiedzi analityków w YAML, z polami `tytul` i `plik` |
+| `<<SZABLON_RAPORTU>>` | pełna ścieżka do `assets/report-template.md` tego skilla |
 
-**Horyzonty czasowe** (moment, w którym wpływ zaczyna dotyczyć użytkownika):
+Podagent czyta wskazane pliki i profil `~/.config/opencode/news-profile.md`. Ocenia wpływ na użytkownika, sortuje i podsumowuje każdy temat. Zapisuje raport do `podsumowanie.md` w katalogu opracowania i zwraca tylko pełną ścieżkę raportu.
 
-| Horyzont | Znaczenie |
-|---|---|
-| H1 | dziś lub jutro |
-| H2 | do miesiąca |
-| H3 | do roku |
-| H4 | 1–5 lat |
-| H5 | ponad 5 lat albo tylko kontekst |
+### Krok 5: Wyświetl raport
 
-Dla każdego newsa zapisz:
-
-- aspekty, których dotyczy, każdy z konkretnym skutkiem dla użytkownika (na przykład „+6,50 zł za bak 50 l”),
-- horyzont,
-- czy wpływ jest bezpośredni, czy pośredni,
-- pola profilu, na których opiera się ocena,
-- twierdzenia źródeł, na których opiera się ocena, z przypisaniem do źródła lub środowiska źródeł.
-
-Jeśli ocena zależy od twierdzenia tylko jednego źródła, od twierdzenia spornego między źródłami albo od brakującego pola profilu, zaznacz to. Nie przedstawiaj skutku założenia jako faktu.
-
-### Krok 5: Posortuj i napisz raport
-
-Sortuj newsy najpierw według horyzontu (H1 przed H5). W tym samym horyzoncie wpływ bezpośredni umieść przed pośrednim, a potem newsy dotyczące większej liczby aspektów przed newsami dotyczącymi mniejszej liczby.
-
-Napisz raport według `assets/report-template.md`, w języku użytkownika. Zakończ krótkim podsumowaniem 1–3 newsów najważniejszych dla użytkownika.
+Otwórz plik zwrócony przez podagenta oceniającego narzędziem podglądu plików (`browser.preview`). Podaj użytkownikowi ścieżkę do raportu. Nie wczytuj raportu do kontekstu wątku głównego ani nie przepisuj jego treści do rozmowy.
 
 ## Zasady
 
-- Nie pomijaj newsa z powodu małego wpływu. Umieść go w ostatnim horyzoncie.
 - Precyzyjnie nazywaj status sprawy według źródeł: „zatrzymanie, nie wyrok”, „projekt, nie ustawa”, „scenariusz modelowy, nie oficjalna prognoza”.
 - Wypowiedzi oficjalne cytuj dosłownie, z nazwiskiem i funkcją osoby.

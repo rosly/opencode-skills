@@ -3,11 +3,15 @@ Zbierz najważniejsze newsy opublikowane w okresie: <<OKRES>>. Zakres: <<ZAKRES>
 ## Zadanie
 Twoim jedynym zadaniem jest znalezienie wzmianek o najważniejszych wydarzeniach w zakresie i wypisanie ich. Raportuj tylko tematy, które znajdziesz.
 
+Zbieraj wzmianki wyróżnione w nagłówkach i przeglądach wiadomości. Nie ustalaj samodzielnie hierarchii ważności. Nie uzasadniaj wyboru tematów. Przepisz znalezione wzmianki do formatu wyniku i zakończ zadanie.
+
 Nie analizuj newsów. Nie szukaj dodatkowych źródeł do znalezionego tematu. Nie zgłębiaj tematów. Nie porównuj, jak różne media przedstawiają temat. Nie rozważaj znaczenia ani skutków wydarzeń.
 
 ## Ograniczenie kontekstu
 Twój kontekst jest ograniczony. Każda dodatkowa strona i każde dodatkowe wyszukiwanie zużywa kontekst. Gdy kontekst się przepełni, zadanie kończy się niepowodzeniem. Dlatego:
 - wykonuj tylko wyszukiwania potrzebne do znalezienia tematów,
+- nie wykonuj osobnych przeglądów podobszarów wybranego zakresu,
+- nie szukaj potwierdzeń ani kolejnych źródeł dla już znalezionego tematu; dołącz tylko źródła napotkane podczas zbierania wzmianek,
 - nie czytaj pełnej treści artykułów,
 - zakończ pracę, gdy wypiszesz <<LIMIT_TEMATOW>> tematów.
 

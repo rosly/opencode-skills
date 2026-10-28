@@ -1,4 +1,4 @@
-# {Tytuł raportu — zakres i data}
+# {Tytuł raportu — zakres i okres publikacji}
 
 Profil: {ścieżka do pliku profilu}
 
