@@ -11,7 +11,7 @@
         "prompt: dodaj do zbiorczego podsumowania zmian organizacyjnych w raporcie"
       ],
       "action_escalated": [
-        "gmail mutate add-label {ID} IMPORTANT",
+        "gmail: mutate add-label {ID} IMPORTANT",
         "prompt: przedstaw szczegółowe streszczenie zmian organizacyjnych"
       ]
     },
@@ -23,7 +23,7 @@
       "content_scoring_prompt": "Jeśli to automatyczny digest, podsumowanie lub rotacja z okresu mojej nieobecności -> 0.0-0.2. Jeśli to bezpośrednia prośba o przejęcie dyżuru lub aktywne wezwanie na mój bieżący dyżur -> 0.9-1.0.",
       "autonomy_threshold": 0.4,
       "action_auto": [
-        "gmail mutate mark-read {ID}"
+        "gmail: mutate mark-read {ID}"
       ],
       "action_escalated": [
         "prompt: zaalarmuj użytkownika o wezwaniu lub zmianie dyżuru"
@@ -38,7 +38,7 @@
       "autonomy_threshold": 0.55,
       "action_auto": [
         "prompt: odnotuj termin wydania w raporcie",
-        "gmail mutate mark-read {ID}"
+        "gmail: mutate mark-read {ID}"
       ],
       "action_escalated": [
         "prompt: wypisz wymagane działania i terminy"
@@ -78,7 +78,7 @@
       "content_scoring_prompt": "Powitania nowych osób, przypomnienia o swagu, minione wydarzenia i cykliczne przypomnienia o ankietach -> 0.0-0.2. Ważne spotkanie całego zespołu wymagające obecności -> 0.8-1.0.",
       "autonomy_threshold": 0.3,
       "action_auto": [
-        "gmail mutate mark-read {ID}"
+        "gmail: mutate mark-read {ID}"
       ],
       "action_escalated": [
         "prompt: zapytaj użytkownika, czy potwierdzić udział lub wykonać akcję"
@@ -92,7 +92,7 @@
       "content_scoring_prompt": "Masowe newslettery i mailingi marketingowe -> 0.0-0.2. Treść ściśle powiązana z aktualnie rozwiązywanym problemem technicznym -> 0.8-1.0.",
       "autonomy_threshold": 0.3,
       "action_auto": [
-        "gmail mutate mark-read {ID}"
+        "gmail: mutate mark-read {ID}"
       ],
       "action_escalated": [
         "prompt: wyróżnij kluczowy materiał w raporcie"
@@ -106,7 +106,7 @@
       "content_scoring_prompt": "Pojedyncze lub przedawnione błędy workflow (np. Plx tables) i automatyczne statusy CHG -> 0.0-0.2. Krytyczny alert bezpieczeństwa (np. VulnCC/Cybersecurity na moim urządzeniu/koncie) -> 0.9-1.0.",
       "autonomy_threshold": 0.4,
       "action_auto": [
-        "gmail mutate mark-read {ID}"
+        "gmail: mutate mark-read {ID}"
       ],
       "action_escalated": [
         "prompt: zaalarmuj o problemie wymagającym naprawy"
@@ -120,7 +120,7 @@
       "content_scoring_prompt": "Jeśli termin prac/wyłączenia prądu już minął -> 0.0. Jeśli dotyczy aktywnej przesyłki sprzętowej do mnie lub nadchodzącego wyłączenia mojego labu -> 0.7-1.0.",
       "autonomy_threshold": 0.45,
       "action_auto": [
-        "gmail mutate mark-read {ID}"
+        "gmail: mutate mark-read {ID}"
       ],
       "action_escalated": [
         "prompt: ostrzeż o utrudnieniach lub konieczności odbioru albo odpowiedzi"

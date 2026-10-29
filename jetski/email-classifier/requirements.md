@@ -29,7 +29,7 @@ Definitions:
 - **Content Importance Score** — the content importance score of a message.
 - **Message Importance Score** — the result of Message Urgency Score + (Topic Class Weight × Content Importance Score).
 - **Importance Calculation** — the textual record of the Message Importance Score computation showing its operands and result.
-- **Mail Tool Command Entry** — an action entry starting with `gmail `.
+- **Mail Tool Command Entry** — an action entry starting with `gmail: `.
 - **Semantic Instruction Entry** — an action entry starting with `prompt: `.
 - **Message Identifier Placeholder** — the marker `{ID}` in a Mail Tool Command Entry.
 - **Unknown Topic Class Marker** — the value that marks a message matching no Topic Class.
@@ -67,9 +67,9 @@ Definitions:
 
 - REQ-EMC-2.1: The Below-Threshold Action List and the Above-Threshold Action List shall be lists of texts, where an empty list means no action.
 - REQ-EMC-2.2: Each action entry shall be a Mail Tool Command Entry or a Semantic Instruction Entry.
-- REQ-EMC-2.3: The text of a Mail Tool Command Entry after the word `gmail` shall be the literal arguments of the gmail CLI.
 - REQ-EMC-2.4: The only permitted parameter in a Mail Tool Command Entry shall be the Message Identifier Placeholder, replaced by the MESSAGE_ID of the evaluated message.
 - REQ-EMC-2.5: The text of a Semantic Instruction Entry after the prefix `prompt: ` shall be a non-empty verbal description of an operation to be performed by a subagent.
+- REQ-EMC-2.6: The text of a Mail Tool Command Entry after the prefix `gmail: ` shall be the literal arguments of the gmail CLI.
 
 ### 2.3 Main thread
 
@@ -191,9 +191,9 @@ Definitions:
 | REQ-EMC-1.16 | User decision 2026-10-29 | A class with the marker as identifier would never be selected by the scoring script. | User |
 | REQ-EMC-2.1 | User decision 2026-10-29 | Multiple entries per action; empty list means no action. | User |
 | REQ-EMC-2.2 | User decision 2026-10-29 | Two entry kinds. | User |
-| REQ-EMC-2.3 | User decision 2026-10-29 | Commands are gmail CLI arguments. | User |
 | REQ-EMC-2.4 | User decision 2026-10-29 | The only parameter is the Message Identifier Placeholder. | User |
 | REQ-EMC-2.5 | User decision 2026-10-29 | A Semantic Instruction Entry describes an operation verbally. | User |
+| REQ-EMC-2.6 | User decisions 2026-10-29 | Commands are gmail CLI arguments after the prefix `gmail: `, symmetric to `prompt: `. | User |
 | REQ-EMC-3.1 | User decision 2026-10-27 | The main thread does not process message content. | User |
 | REQ-EMC-3.2 | User decision 2026-10-27 | Questions only through the tool, with ready options. | User |
 | REQ-EMC-3.3 | User decision 2026-10-27 | Message count check at start. | User |
@@ -281,6 +281,7 @@ Definitions:
 | REQ-EMC-4.12 | Replaced | REQ-EMC-4.15 | Class Proposals additionally contain a proposed Topic Class Identifier (user decision 2026-10-29). |
 | REQ-EMC-6.3 | Replaced | REQ-EMC-6.7 | New classes receive the identifier of the approved proposal instead of the next `TOPIC-<number>` (user decision 2026-10-29). |
 | REQ-EMC-6.1 | Replaced | REQ-EMC-6.8 | Standard proposals are asked only when the contextual discovery is not used or yields no accepted proposal (user decision 2026-10-29). |
+| REQ-EMC-2.3 | Replaced | REQ-EMC-2.6 | Mail Tool Command Entry prefix changed from the word `gmail` to `gmail: `, symmetric to `prompt: ` (user decision 2026-10-29). |
 | REQ-EMC-1.10 | Replaced | REQ-EMC-1.13 | The Database Template is empty and is not a default database (user decision 2026-10-29). |
 | REQ-EMC-1.2 | Clarified | REQ-EMC-1.2 | Implementation identifiers replaced by defined code names (user decision 2026-10-29). |
 | REQ-EMC-1.3 | Clarified | REQ-EMC-1.3 | Implementation identifiers replaced by defined code names (user decision 2026-10-29). |

@@ -4,7 +4,7 @@
 Checks the file ~/.gemini/email_topics.json:
 - the class structure (fields, types, ranges, id uniqueness, action entry
   prefixes),
-- every "gmail ..." entry against the gmail CLI help output: existence of the
+- every "gmail: ..." entry against the gmail CLI help output: existence of the
   namespace and command, existence of the flags, the number of positional
   arguments according to the "Usage:" line, and absence of markers other than
   {ID}.
@@ -35,7 +35,7 @@ from typing import Any, Dict, List, Optional, Set, Tuple
 
 TOPICS_PATH = "~/.gemini/email_topics.json"
 GMAIL_CLI = "/google/bin/releases/gemini-agents-gmail/gmail"
-GMAIL_PREFIX = "gmail "
+GMAIL_PREFIX = "gmail: "
 PROMPT_PREFIX = "prompt: "
 ID_MARKER = "{ID}"
 UNKNOWN_TOPIC_ID = "UNKNOWN"

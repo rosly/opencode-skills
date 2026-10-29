@@ -2,7 +2,7 @@
 name: email-classifier
 description: Klasyfikuje nieprzeczytane emaile według bazy generycznych tematów w ~/.gemini/email_topics.json, deleguje ocenę i wykonanie akcji podagentom (ważność urgency + class_weight * content_score liczy deterministyczny skrypt) i przedstawia raport zbiorczy; waliduje bazę tematów względem pomocy CLI gmail. Use when użytkownik prosi o klasyfikację, ocenę ważności lub porządkowanie nieprzeczytanych maili według tematów, o dodanie klasy tematu albo o walidację bazy tematów email. Don't use for czytania, wyszukiwania lub wysyłania pojedynczych maili (use gmail) ani do triażu skrzynki bez bazy tematów (use email-triage).
 metadata:
-  version: "0.7"
+  version: "0.8"
 ---
 
 # Email Classifier
@@ -36,7 +36,7 @@ Baza to obiekt JSON z listą klas pod kluczem `topics`. Pola klasy:
 | `action_escalated` | akcja dla ważności `> autonomy_threshold` |
 
 Akcja to lista wpisów. Pusta lista `[]` oznacza brak akcji. Każdy wpis to:
-- `gmail <argumenty CLI gmail>` — skrypt oceny wykonuje go przez `/google/bin/releases/gemini-agents-gmail/gmail`. Jedynym parametrem jest `{ID}`; skrypt zastępuje go przez `MESSAGE_ID`.
+- `gmail: <argumenty CLI gmail>` — skrypt oceny wykonuje go przez `/google/bin/releases/gemini-agents-gmail/gmail`. Jedynym parametrem jest `{ID}`; skrypt zastępuje go przez `MESSAGE_ID`.
 - `prompt: <opis>` — skrypt oceny zwraca go podagentowi, który wykonuje opisaną operację.
 
 ## Model oceny
@@ -195,8 +195,8 @@ Dla każdej pozycji z `mode` = `UNKNOWN_TOPIC` wykonaj 4a, w razie potrzeby 4b, 
          "question": "Wybierz parametry i akcje dla nowej klasy:",
          "options": [
            "(Recommended) Z wybranej propozycji: class_weight=<W>, autonomy_threshold=<T> | action_auto: <lista> | action_escalated: <lista> | content_scoring_prompt: <tekst>",
-           "Niski priorytet: class_weight=0.2, autonomy_threshold=0.40 | action_auto: [\"gmail mutate mark-read {ID}\"] | action_escalated: [\"prompt: powiadom użytkownika o wiadomości\"]",
-           "Średni priorytet: class_weight=0.5, autonomy_threshold=0.55 | action_auto: [\"prompt: odnotuj wiadomość w raporcie\", \"gmail mutate mark-read {ID}\"] | action_escalated: [\"prompt: wypisz wymagane działania i terminy\"]",
+           "Niski priorytet: class_weight=0.2, autonomy_threshold=0.40 | action_auto: [\"gmail: mutate mark-read {ID}\"] | action_escalated: [\"prompt: powiadom użytkownika o wiadomości\"]",
+           "Średni priorytet: class_weight=0.5, autonomy_threshold=0.55 | action_auto: [\"prompt: odnotuj wiadomość w raporcie\", \"gmail: mutate mark-read {ID}\"] | action_escalated: [\"prompt: wypisz wymagane działania i terminy\"]",
            "Wysoki priorytet: class_weight=0.9, autonomy_threshold=0.50 | action_auto: [] | action_escalated: [\"prompt: przeanalizuj wątek szczegółowo i zaproponuj odpowiedź\"]"
          ],
          "is_multi_select": false
@@ -210,7 +210,7 @@ Dla każdej pozycji z `mode` = `UNKNOWN_TOPIC` wykonaj 4a, w razie potrzeby 4b, 
 
 Wykonaj dla propozycji zaakceptowanej w 4a albo wybranej w 4b.
 
-1. Sprawdź każdy wpis `gmail …` wybranych akcji w pomocy polecenia:
+1. Sprawdź każdy wpis `gmail: …` wybranych akcji w pomocy polecenia:
    ```bash
    /google/bin/releases/gemini-agents-gmail/gmail <przestrzeń> <polecenie> --help
    ```

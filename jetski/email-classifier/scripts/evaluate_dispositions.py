@@ -6,7 +6,7 @@ evaluations from standard input and the topic database from
 ~/.gemini/email_topics.json. For every valid message it computes:
     importance = urgency + (class_weight * content_score)
 selects action_auto (importance <= autonomy_threshold) or action_escalated
-(importance > autonomy_threshold), executes the "gmail ..." entries through the
+(importance > autonomy_threshold), executes the "gmail: ..." entries through the
 gmail CLI, and returns the "prompt: ..." entries in prompt_actions without
 interpreting them. Messages with out-of-range data are placed in errors and no
 action is executed for them.
@@ -31,7 +31,7 @@ from typing import Any, Dict, List
 
 TOPICS_PATH = "~/.gemini/email_topics.json"
 GMAIL_CLI = "/google/bin/releases/gemini-agents-gmail/gmail"
-GMAIL_PREFIX = "gmail "
+GMAIL_PREFIX = "gmail: "
 PROMPT_PREFIX = "prompt: "
 ID_MARKER = "{ID}"
 UNKNOWN_TOPIC_ID = "UNKNOWN"
@@ -78,7 +78,7 @@ def validate_item(item: Any, topics: Dict[str, Dict[str, Any]]) -> List[str]:
 
 
 def run_gmail_entry(entry: str, message_id: str) -> Dict[str, Any]:
-  """Executes a "gmail ..." entry with the message id substituted, without a shell."""
+  """Executes a "gmail: ..." entry with the message id substituted, without a shell."""
   if not isinstance(entry, str) or not entry.startswith(GMAIL_PREFIX):
     raise ValueError(f"entry must be a string starting with {GMAIL_PREFIX!r}")
   if not isinstance(message_id, str) or not message_id:
