@@ -2,7 +2,7 @@
 name: skill-creator
 description: Guide for creating effective skills. Use when users want to create a new skill (or update an existing skill) that extends OpenCode's capabilities with specialized knowledge, workflows, or tool integrations.
 metadata:
-  version: "1.3"
+  version: "1.4"
 license: Complete terms in LICENSE.txt
 ---
 
@@ -291,10 +291,25 @@ If the skill delegates work to subagents → apply these rules:
 
 Skip this step when the skill was developed in place in a discovery location; OpenCode already loads it. Install only when the skill was developed elsewhere or obtained from an external source.
 
-OpenCode loads skills from its discovery locations, so installing a skill means placing the skill directory there:
+OpenCode loads skills from its discovery locations, so installing a skill means placing the skill's runtime files there:
 
 - Project: `.opencode/skills/<skill-id>/`
 - Global: `~/.config/opencode/skills/<skill-id>/`
+
+Install only the runtime files: `SKILL.md` and the `scripts/`, `references/`, and `assets/` directories that exist in the source. Do not install any other file or directory from the source, such as `requirements.md`, `examples/`, tests, or research notes, because SKILL.md does not load them and they belong to development only.
+
+```bash
+rm -rf <installed-path>
+mkdir -p <installed-path>
+cp -a <source-path>/SKILL.md <installed-path>/
+for dir in scripts references assets; do
+  if [ -d <source-path>/$dir ]; then cp -a <source-path>/$dir <installed-path>/; fi
+done
+```
+
+If the skill is a root-level Markdown file (`<skill-id>.md`) → install only that file into `.opencode/skills/` or `~/.config/opencode/skills/`.
+
+Run `rm -rf <installed-path>` only after the `metadata.version` check below allows the overwrite.
 
 After copying a skill, make every installed Python script executable:
 
@@ -334,4 +349,5 @@ Increment `metadata.version` on every edit to an existing skill, not only when a
 - [ ] If the skill uses subagents → each prompt template ends with `## Response format` that defines a JSON object with `status` and `errors`.
 - [ ] Every file in `scripts/`, `references/`, and `assets/` is referenced from SKILL.md, and no empty directory exists.
 - [ ] If the skill existed before → `metadata.version` is higher than the previous version.
-- [ ] If the skill was installed (Step 5) → `diff -r <source-path> <installed-path>` prints nothing.
+- [ ] If the skill was installed (Step 5) → `diff -r <source-path>/<item> <installed-path>/<item>` prints nothing for `SKILL.md` and for each of `scripts/`, `references/`, `assets/` present in the source; for a root-level Markdown skill file → `diff <source-path> <installed-path>` prints nothing.
+- [ ] If a skill directory was installed (Step 5) → `ls -A <installed-path>` lists only `SKILL.md`, `scripts`, `references`, and `assets`.
