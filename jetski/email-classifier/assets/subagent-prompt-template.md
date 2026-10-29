@@ -42,7 +42,7 @@ Skrypt oceny: <SKILL_DIR>/scripts/evaluate_dispositions.py
    ```
    Skrypt sam wykonuje wpisy `gmail: …`. Nie licz ważności i nie wykonuj wpisów `gmail: …` samodzielnie.
 8. Jeśli lista `errors` w wyniku nie jest pusta → oceń ponownie wiadomości z tej listy według kroków 3–6 i wywołaj skrypt oceny tylko dla nich. Powtarzaj, dopóki `errors` nie jest pusta.
-9. Dla każdego wpisu z listy `prompt_actions` wykonaj operację opisaną w polu `prompt` dla wiadomości `message_id`. Jeśli operacja wymaga zmiany w Gmailu → wywołaj CLI gmail. Jeśli wymaga informacji dla użytkownika → przygotuj ją do pola `prompt_results`.
+9. Dla każdego wpisu z listy `prompt_actions` wykonaj operację opisaną w polu `prompt` dla wiadomości `message_id`. Jeśli operacja wymaga zmiany w Gmailu → wywołaj CLI gmail. Jeśli wymaga informacji dla użytkownika → przygotuj ją do pola `prompt_results`. Każde polecenie CLI gmail, które wykonasz przy tej operacji, zacytuj w polu `result` pogrubieniem Markdown, np. **`/google/bin/releases/gemini-agents-gmail/gmail mutate add-label <ID> IMPORTANT`**.
 10. Zwróć wątkowi głównemu wyłącznie JSON w tej formie, z jedną pozycją na wiadomość:
     ```json
     [
@@ -63,7 +63,7 @@ Skrypt oceny: <SKILL_DIR>/scripts/evaluate_dispositions.py
       }
     ]
     ```
-    - `gmail_results`: przepisz z wyniku skryptu.
+    - `gmail_results`: przepisz z wyniku skryptu bez zmian, razem z polem `action_name`.
     - `execution_errors`: wpisz każdy wynik z `gmail_results` z `exit_code` różnym od 0, każdy wpis `prompt_actions`, którego nie wykonałeś, z powodem, oraz każdy błąd skryptu oceny.
 11. Jeśli wątek główny odeśle wiadomość z nowym `topic_id` → odczytaj ponownie bazę tematów, ustaw `content_score` według kroku 5 dla nowej klasy, wywołaj skrypt oceny (krok 7) z nowym `topic_id`, wykonaj kroki 8–9 i zwróć wynik w formie z kroku 10.
 12. Jeśli wątek główny poleci wyszukiwanie kontekstowe dla wiadomości `MESSAGE_ID` → wyszukaj w całej skrzynce, łącznie z przeczytanymi, maile podobne do tej wiadomości:

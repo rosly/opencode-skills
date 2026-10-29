@@ -30,6 +30,7 @@ Definitions:
 - **Message Importance Score** — the result of Message Urgency Score + (Topic Class Weight × Content Importance Score).
 - **Importance Calculation** — the textual record of the Message Importance Score computation showing its operands and result.
 - **Mail Tool Command Entry** — an action entry starting with `gmail: `.
+- **Mail Action Name** — the command word that follows the namespace in a Mail Tool Command Entry (for example `mark-read` in `gmail: mutate mark-read {ID}`).
 - **Semantic Instruction Entry** — an action entry starting with `prompt: `.
 - **Message Identifier Placeholder** — the marker `{ID}` in a Mail Tool Command Entry.
 - **Unknown Topic Class Marker** — the value that marks a message matching no Topic Class.
@@ -84,6 +85,8 @@ Definitions:
 - REQ-EMC-3.9: The main thread shall not invoke the scoring script.
 - REQ-EMC-3.10: The main thread shall present to the user a summary report with one row for each processed message, containing the MESSAGE_ID, sender and subject, Topic Class Identifier, Importance Calculation, Autonomous Action Threshold, and performed actions.
 - REQ-EMC-3.11: The summary report shall contain all execution errors reported by subagents.
+- REQ-EMC-3.12: The summary report shall contain a mail tool column that lists, for each message, the Mail Action Name of every Mail Tool Command Entry executed by the scoring script, with the suffix `(błąd)` for every command that ended with an exit code other than 0.
+- REQ-EMC-3.13: The summary report shall contain a semantic instruction column that lists, for each message, the results of the performed Semantic Instruction Entries.
 
 ### 2.4 Subagent
 
@@ -101,6 +104,7 @@ Definitions:
 - REQ-EMC-4.13: A subagent shall return to the main thread a Message Outcome Record for each message, containing the MESSAGE_ID, sender, subject, Topic Class Identifier, Importance Calculation, Mail Tool Command Entry results, Semantic Instruction Entry results, and execution errors.
 - REQ-EMC-4.14: A subagent shall report to the main thread as an execution error every Mail Tool Command Entry that ended with an error, every Semantic Instruction Entry it did not perform, and every scoring script error.
 - REQ-EMC-4.15: For a message marked with the Unknown Topic Class Marker, a subagent shall return to the main thread 3 Class Proposals, each containing a Topic Class Identifier, Topic Class Name, Topic Class Description, Topic Class Weight, Class-Specific Content Scoring Instructions, Autonomous Action Threshold, Below-Threshold Action List, and Above-Threshold Action List.
+- REQ-EMC-4.16: When a subagent executes a gmail CLI command while performing a Semantic Instruction Entry, the subagent shall quote the executed command in bold Markdown in the result of that entry.
 
 ### 2.5 Scoring script
 
@@ -120,6 +124,7 @@ Definitions:
 - REQ-EMC-5.15: The scoring script shall not perform actions for a message marked with the Unknown Topic Class Marker or for a message in the Range Error List.
 - REQ-EMC-5.16: The scoring script shall return on standard output a JSON document containing, for each valid message, the Importance Calculation, Autonomous Action Threshold, Processing Mode, and Mail Tool Command Entry results, as well as the Deferred Semantic Action List and the Range Error List.
 - REQ-EMC-5.17: The scoring script shall place in the Range Error List a message whose Message Urgency Score is not a number in the range 0.0–1.0 inclusive.
+- REQ-EMC-5.18: For every executed Mail Tool Command Entry, the scoring script shall return the Mail Action Name in its result.
 
 ### 2.6 New classes
 
@@ -205,6 +210,8 @@ Definitions:
 | REQ-EMC-3.9 | User decision 2026-10-29 | Subagents invoke the script. | User |
 | REQ-EMC-3.10 | User decision 2026-10-27 | Report with calculation and action. | User |
 | REQ-EMC-3.11 | User decision 2026-10-29 | Execution errors must reach the user. | User |
+| REQ-EMC-3.12 | User decision 2026-10-29 | Automatic gmail actions are visible at a glance in a dedicated column. | User |
+| REQ-EMC-3.13 | User decision 2026-10-29 | Results of semantic instructions are shown in their own column. | User |
 | REQ-EMC-4.1 | User decision 2026-10-27 | The subagent fetches message content itself. | User |
 | REQ-EMC-4.2 | User decision 2026-10-26 | Classification or missing-class signal. | User |
 | REQ-EMC-4.3 | User decisions 2026-10-26 and 2026-10-29 | Urgent: within 2 days, value 1.0; the subagent keeps discrete values. | User |
@@ -219,6 +226,7 @@ Definitions:
 | REQ-EMC-4.13 | User decision 2026-10-29 | Results for the summary report. | User |
 | REQ-EMC-4.14 | User decision 2026-10-29 | Execution errors reported to the user. | User |
 | REQ-EMC-4.15 | User decisions 2026-10-27 and 2026-10-29, REQ-EMC-1.3 | Ready proposals for confirmation, including a semantic identifier. | User |
+| REQ-EMC-4.16 | User decision 2026-10-29 | Mailbox changes made while performing semantic instructions leave a visible trace. | User |
 | REQ-EMC-5.1 | User decision 2026-10-27 | The script accepts the aggregated list. | User |
 | REQ-EMC-5.2 | User decision 2026-10-27 | Calculation according to the class file. | User |
 | REQ-EMC-5.3 | User decision 2026-10-29 | Range error instead of default values. | User |
@@ -235,6 +243,7 @@ Definitions:
 | REQ-EMC-5.15 | REQ-EMC-5.3, REQ-EMC-5.4, REQ-EMC-5.6, REQ-EMC-5.17, REQ-EMC-6.8 | Missing class or invalid data prevents action selection. | User |
 | REQ-EMC-5.16 | User decisions 2026-10-27 to 2026-10-29 | Result as JSON on standard output. | User |
 | REQ-EMC-5.17 | User decision 2026-10-29 | The script accepts a continuous urgency range. | User |
+| REQ-EMC-5.18 | User decision 2026-10-29 | Deterministic extraction of the action name in Python. | User |
 | REQ-EMC-6.2 | User decision 2026-10-29 | Commands generated from the gmail CLI help output. | User |
 | REQ-EMC-6.4 | User decision 2026-10-29 | Validation after every database change. | User |
 | REQ-EMC-6.5 | User decision 2026-10-29 | Returning the message to the same subagent. | User |

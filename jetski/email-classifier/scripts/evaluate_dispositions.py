@@ -84,11 +84,11 @@ def run_gmail_entry(entry: str, message_id: str) -> Dict[str, Any]:
   if not isinstance(message_id, str) or not message_id:
     raise ValueError("message_id must be a non-empty string")
 
-  argv = [GMAIL_CLI] + [
-      token.replace(ID_MARKER, message_id) for token in shlex.split(entry)[1:]
-  ]
+  tokens = shlex.split(entry)[1:]
+  argv = [GMAIL_CLI] + [token.replace(ID_MARKER, message_id) for token in tokens]
   completed = subprocess.run(argv, capture_output=True, text=True, check=False)
   return {
+      "action_name": tokens[1],
       "command": shlex.join(argv),
       "exit_code": completed.returncode,
       "output": completed.stdout.strip(),

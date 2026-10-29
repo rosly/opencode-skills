@@ -2,7 +2,7 @@
 name: email-classifier
 description: Klasyfikuje nieprzeczytane emaile według bazy generycznych tematów w ~/.gemini/email_topics.json, deleguje ocenę i wykonanie akcji podagentom (ważność urgency + class_weight * content_score liczy deterministyczny skrypt) i przedstawia raport zbiorczy; waliduje bazę tematów względem pomocy CLI gmail. Use when użytkownik prosi o klasyfikację, ocenę ważności lub porządkowanie nieprzeczytanych maili według tematów, o dodanie klasy tematu albo o walidację bazy tematów email. Don't use for czytania, wyszukiwania lub wysyłania pojedynczych maili (use gmail) ani do triażu skrzynki bez bazy tematów (use email-triage).
 metadata:
-  version: "0.8"
+  version: "0.9"
 ---
 
 # Email Classifier
@@ -224,7 +224,9 @@ Wykonaj dla propozycji zaakceptowanej w 4a albo wybranej w 4b.
 
 ### Krok 5: Przedstaw raport zbiorczy
 
-1. Przedstaw tabelę z jednym wierszem na każdą przetworzoną wiadomość, z kolumnami: `message_id`, nadawca i temat, `topic_id`, `formula`, `autonomy_threshold`, wykonane akcje (`gmail_results` i `prompt_results`).
+1. Przedstaw tabelę z jednym wierszem na każdą przetworzoną wiadomość, z kolumnami: `message_id`, nadawca i temat, `topic_id`, `formula`, `autonomy_threshold`, `gmail:`, `prompt:`.
+   - Kolumna `gmail:` — `action_name` każdej pozycji z `gmail_results` (akcje wykonane automatycznie przez skrypt oceny), np. `mark-read`; przy `exit_code` różnym od 0 dopisz `(błąd)`, np. `add-label (błąd)`; bez pozycji → `—`.
+   - Kolumna `prompt:` — `result` każdej pozycji z `prompt_results`, z poleceniami CLI gmail zacytowanymi przez podagenta pogrubieniem; bez pozycji → `—`.
 2. Pod tabelą przedstaw sekcję „Błędy wykonania” ze wszystkimi `execution_errors` od podagentów i błędami z kroku 3. Jeśli błędów nie ma → napisz „Brak błędów wykonania”.
 
 ### Krok 6: Przetwórz kolejną paczkę
