@@ -11,48 +11,11 @@ import re
 import sys
 from pathlib import Path
 
+import yaml
+
 
 SKILL_ID_PATTERN = re.compile(r'^[a-z0-9]+(-[a-z0-9]+)*$')
 BOOLEAN_VALUES = {'true', 'false'}
-
-
-def strip_quotes(value):
-    """Remove a single pair of matching surrounding quotes."""
-    if len(value) >= 2 and value[0] == value[-1] and value[0] in ('"', "'"):
-        return value[1:-1]
-    return value
-
-
-def parse_frontmatter(text):
-    """
-    Parse the minimal YAML subset used by skill frontmatter.
-
-    Supports top-level scalars and one level of nested mapping (for
-    `metadata.opencode/autoinvoke`). Block scalars (`>` and `|`) are not
-    supported.
-    """
-    data = {}
-    current_map = None
-    for raw_line in text.splitlines():
-        if not raw_line.strip() or raw_line.lstrip().startswith('#'):
-            continue
-        indent = len(raw_line) - len(raw_line.lstrip(' '))
-        line = raw_line.strip()
-        if ':' not in line:
-            continue
-        key, _, value = line.partition(':')
-        key = key.strip()
-        value = strip_quotes(value.strip())
-        if indent == 0:
-            if value == '':
-                current_map = key
-                data.setdefault(key, {})
-            else:
-                current_map = None
-                data[key] = value
-        elif current_map is not None:
-            data[current_map][key] = value
-    return data
 
 
 def is_boolean(value):
@@ -106,7 +69,13 @@ def validate_skill(skill_path):
     if not match:
         return ["Invalid frontmatter format"], warnings
 
-    frontmatter = parse_frontmatter(match.group(1))
+    # PyYAML docs (safe_load, YAMLError): https://pyyaml.org/wiki/PyYAMLDocumentation
+    try:
+        frontmatter = yaml.safe_load(match.group(1))
+    except yaml.YAMLError as exc:
+        return [f"Invalid YAML in frontmatter: {exc}"], warnings
+    if not isinstance(frontmatter, dict):
+        return ["Frontmatter must be a YAML mapping"], warnings
 
     # Description is required for the skill to be advertised.
     if 'description' not in frontmatter:
