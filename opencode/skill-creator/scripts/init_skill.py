@@ -22,7 +22,7 @@ SKILL_NAME_PATTERN = re.compile(r'^[a-z0-9]+(-[a-z0-9]+)*$')
 
 SKILL_TEMPLATE = """---
 name: {skill_name}
-description: [TODO: Complete and informative explanation of what the skill does and when to use it. Include WHEN to use this skill - specific scenarios, file types, or tasks that trigger it.]
+description: "[TODO: <capability statement>. Use when <triggers: user requests, file types, tools, or tasks>. Optional, only when another skill is likely to be confused with this one: Don't use for <out-of-scope tasks> (use <other-skill>).]"
 metadata:
   version: "0.1"
 ---
@@ -41,6 +41,8 @@ metadata:
 - Works well when there are clear step-by-step procedures
 - Example: DOCX skill with "Workflow Decision Tree" → "Reading" → "Creating" → "Editing"
 - Structure: ## Overview → ## Workflow Decision Tree → ## Step 1 → ## Step 2...
+- With 3 or more ordered steps, start the workflow with a progress checklist ("Copy this checklist and track progress:")
+- If the skill creates or modifies files, start the workflow with "Step 0: Check existing state" (create mode vs update mode)
 
 **2. Task-Based** (best for tool collections)
 - Works well when the skill offers different operations/capabilities
@@ -103,6 +105,12 @@ Files not intended to be loaded into context, but rather used within the output 
 - Typography: Font files (.ttf, .woff2)
 
 **Appropriate for:** Templates, boilerplate code, document templates, images, icons, fonts, or any files meant to be copied or used in the final output.
+
+## Definition of done
+
+[TODO: Replace with verifiable, atomic checks that do not restate the body and that no script already covers. Examples:
+- [ ] `<command>` exits with code 0.
+- [ ] `<output file>` exists and contains `<expected content>`.]
 """
 
 EXAMPLE_SCRIPT = '''#!/usr/bin/env python3
