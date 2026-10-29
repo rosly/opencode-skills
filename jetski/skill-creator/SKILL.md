@@ -2,7 +2,7 @@
 name: skill-creator
 description: Guide for creating effective Jetski skills. Use when users want to create a new skill (or update an existing skill) that extends Jetski's capabilities with specialized knowledge, workflows, or tool integrations. Don't use for rules, hooks, agents, plugins, or MCP servers (use jetski-customizations).
 metadata:
-  version: "2.3"
+  version: "2.4"
 ---
 
 # Skill Creator
@@ -77,6 +77,7 @@ Executable code (Python/Bash/etc.) for tasks that require deterministic reliabil
 - **Example**: `scripts/rotate_pdf.py` for PDF rotation tasks
 - **Benefits**: Token efficient, deterministic, may be executed without loading into context
 - **Note**: Scripts may still need to be read by Jetski for patching or environment-specific adjustments
+- **Executable bit**: Make every Python script executable with `chmod a+x scripts/<script>.py` before committing it, so the repository stores it as executable.
 
 ##### References (`references/`)
 
@@ -287,6 +288,12 @@ Jetski loads skills from its discovery locations, so installing a skill means pl
 - Global: `~/.gemini/config/skills/<skill-id>/`
 - Google3 project: `_agents/skills/<skill-id>/`
 - Personal Piper: `configs/users/<username>/_agents/skills/<skill-id>/`
+
+After copying a skill, make every installed Python script executable:
+
+```bash
+chmod a+x <installed-path>/scripts/*.py
+```
 
 Keep development separate from the installation directory. Before copying a skill over an existing installation, compare the `metadata.version` in the source SKILL.md with the installed copy:
 
