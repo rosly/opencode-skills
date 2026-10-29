@@ -2,7 +2,7 @@
 name: skill-creator
 description: Guide for creating effective skills. Use when users want to create a new skill (or update an existing skill) that extends OpenCode's capabilities with specialized knowledge, workflows, or tool integrations.
 metadata:
-  version: "1.2"
+  version: "1.3"
 license: Complete terms in LICENSE.txt
 ---
 
@@ -90,6 +90,7 @@ Executable code (Python/Bash/etc.) for tasks that require deterministic reliabil
 - **Example**: `scripts/rotate_pdf.py` for PDF rotation tasks
 - **Benefits**: Token efficient, deterministic, may be executed without loading into context
 - **Note**: Scripts may still need to be read by OpenCode for patching or environment-specific adjustments
+- **Executable bit**: Make every Python script executable with `chmod a+x scripts/<script>.py` before committing it, so the repository stores it as executable.
 
 ##### References (`references/`)
 
@@ -294,6 +295,12 @@ OpenCode loads skills from its discovery locations, so installing a skill means 
 
 - Project: `.opencode/skills/<skill-id>/`
 - Global: `~/.config/opencode/skills/<skill-id>/`
+
+After copying a skill, make every installed Python script executable:
+
+```bash
+chmod a+x <installed-path>/scripts/*.py
+```
 
 Keep development separate from the installation directory. Before copying a skill over an existing installation, compare the `metadata.version` in the source SKILL.md with the installed copy:
 
