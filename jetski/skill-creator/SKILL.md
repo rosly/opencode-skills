@@ -2,7 +2,7 @@
 name: skill-creator
 description: Guide for creating effective Jetski skills. Use when users want to create a new skill (or update an existing skill) that extends Jetski's capabilities with specialized knowledge, workflows, or tool integrations. Don't use for rules, hooks, agents, plugins, or MCP servers (use jetski-customizations).
 metadata:
-  version: "2.2"
+  version: "2.3"
 ---
 
 # Skill Creator
@@ -261,6 +261,22 @@ If the skill creates or modifies files → start its workflow with "Step 0: Chec
 - If the output does not exist → create mode: run all steps.
 - If the output exists → update mode: read the existing files first, change only the affected parts, and do not regenerate unchanged files.
 
+#### Add Subagent Prompt Templates and Structured Responses
+
+If the skill delegates work to subagents → apply these rules:
+
+1. Store each subagent prompt as a Markdown template in `assets/<role>-prompt-template.md`.
+2. Mark every variable part of a template with a placeholder `<<FIELD_NAME>>` in uppercase snake case. Do not use any other placeholder syntax.
+3. In SKILL.md, give each template a fill table `| Placeholder | Value source |` that lists every placeholder of that template.
+4. Instruct the agent to pass the template to the subagent verbatim: replace only the placeholders; do not paraphrase, shorten, reorder, or add text.
+5. Instruct the agent to verify that the filled prompt contains no `<<` before it launches the subagent.
+6. End each template with a `## Response format` section that:
+   - requires exactly one JSON object and no text before or after it;
+   - shows the object with every field;
+   - states each field's type and allowed values;
+   - includes `status` (`ok`, `partial`, or `failed`) and `errors` (list of strings).
+7. Instruct the agent to parse the JSON response and check the required fields. If this fails → resend the prompt once with the parse error appended. If it fails again → report the failure to the user.
+
 ### Step 5: Install or Upgrade the Skill (optional)
 
 Skip this step when the skill was developed in place in a discovery location; Jetski already discovers it. Install only when the skill was developed elsewhere or obtained from an external source.
@@ -300,6 +316,8 @@ Increment `metadata.version` on every edit to an existing skill, not only when a
 - [ ] SKILL.md ends with a `## Definition of done` checklist that follows "Add Checklists".
 - [ ] If the workflow has 3 or more ordered steps → it starts with a progress checklist.
 - [ ] If the skill creates or modifies files → its workflow starts with "Step 0: Check existing state".
+- [ ] If the skill uses subagents → every `<<FIELD_NAME>>` in each `assets/*-prompt-template.md` appears in that template's fill table in SKILL.md.
+- [ ] If the skill uses subagents → each prompt template ends with `## Response format` that defines a JSON object with `status` and `errors`.
 - [ ] Every file in `scripts/`, `references/`, and `assets/` is referenced from SKILL.md, and no empty directory exists.
 - [ ] If the skill existed before → `metadata.version` is higher than the previous version.
 - [ ] If the skill was installed (Step 5) → `diff -r <source-directory> <installed-directory>` prints nothing.
