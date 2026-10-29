@@ -4,7 +4,7 @@
       "id": "TOPIC-01",
       "name": "Zmiany w strukturze firmy",
       "description": "Reorganizacje, zmiany VP/Directorów, zmiany struktury zespołów i właścicieli obszarów",
-      "class_weight": 0.6,
+      "urgency_weight": 0.6,
       "content_scoring_prompt": "Jeśli zmiana dotyczy bezpośrednio mojego zespołu, raportowania lub projektów ChromeOS/L&T/Aluminium -> 0.8-1.0. Jeśli dotyczy odległych działów -> 0.2-0.4.",
       "autonomy_threshold": 0.6,
       "action_auto": [
@@ -19,7 +19,7 @@
       "id": "TOPIC-02",
       "name": "Szeryfowanie i rotacje",
       "description": "Dyżury, al-kernel-rotation, podsumowania rotacji, on-call i przypomnienia o snippetach",
-      "class_weight": 0.2,
+      "urgency_weight": 0.2,
       "content_scoring_prompt": "Jeśli to automatyczny digest, podsumowanie lub rotacja z okresu mojej nieobecności -> 0.0-0.2. Jeśli to bezpośrednia prośba o przejęcie dyżuru lub aktywne wezwanie na mój bieżący dyżur -> 0.9-1.0.",
       "autonomy_threshold": 0.4,
       "action_auto": [
@@ -33,7 +33,7 @@
       "id": "TOPIC-03",
       "name": "Powiadomienia o releasach",
       "description": "Branch cuts, RC builds, harmonogramy wydań, zamrożenia kodu",
-      "class_weight": 0.5,
+      "urgency_weight": 0.5,
       "content_scoring_prompt": "Jeśli to ogólne ogłoszenie harmonogramu -> 0.3-0.5. Jeśli wymaga cherry-picków lub blokuje moje aktywne zmiany -> 0.8-1.0.",
       "autonomy_threshold": 0.55,
       "action_auto": [
@@ -48,7 +48,7 @@
       "id": "TOPIC-04",
       "name": "Project Aluminium",
       "description": "Wszystko co dotyczy projektu Aluminium (AL, ALOS, kernel, platforma, Sapphire, patche, architektura)",
-      "class_weight": 0.9,
+      "urgency_weight": 0.9,
       "content_scoring_prompt": "Jeśli to decyzje architektoniczne, statusy milestone'ów, bezpośrednie code review lub dyskusje techniczne -> 0.6-1.0. Jeśli to tylko zautomatyzowany szum bez wpływu na kod -> 0.1-0.3.",
       "autonomy_threshold": 0.5,
       "action_auto": [
@@ -62,7 +62,7 @@
       "id": "TOPIC-05",
       "name": "Chromestop",
       "description": "Zgłoszenia, blokady wydań i procedury w ramach Chromestop",
-      "class_weight": 1.0,
+      "urgency_weight": 1.0,
       "content_scoring_prompt": "Każde aktywne zgłoszenie dotyczące moich komponentów/zespołu -> 0.8-1.0. Zamknięte/nieaktualne wątki poboczne -> 0.2.",
       "autonomy_threshold": 0.4,
       "action_auto": [],
@@ -74,7 +74,7 @@
       "id": "TOPIC-06",
       "name": "Życie firmowe i korporacyjne",
       "description": "Powitania (Welcome), swag, wydarzenia integracyjne, ogólne ankiety (np. Googlegeist), alerty Grow",
-      "class_weight": 0.1,
+      "urgency_weight": 0.1,
       "content_scoring_prompt": "Powitania nowych osób, przypomnienia o swagu, minione wydarzenia i cykliczne przypomnienia o ankietach -> 0.0-0.2. Ważne spotkanie całego zespołu wymagające obecności -> 0.8-1.0.",
       "autonomy_threshold": 0.3,
       "action_auto": [
@@ -88,7 +88,7 @@
       "id": "TOPIC-07",
       "name": "Newslettery i subskrypcje",
       "description": "Biuletyny zewnętrzne i wewnętrzne (DeepLearning.AI, Qualcomm, Bluetooth SIG, oferty komercyjne)",
-      "class_weight": 0.1,
+      "urgency_weight": 0.1,
       "content_scoring_prompt": "Masowe newslettery i mailingi marketingowe -> 0.0-0.2. Treść ściśle powiązana z aktualnie rozwiązywanym problemem technicznym -> 0.8-1.0.",
       "autonomy_threshold": 0.3,
       "action_auto": [
@@ -102,7 +102,7 @@
       "id": "TOPIC-08",
       "name": "Automatyczne alerty i workflow",
       "description": "Powiadomienia Plx Workflow, automatyczne audyty CHG, rutynowe boty",
-      "class_weight": 0.2,
+      "urgency_weight": 0.2,
       "content_scoring_prompt": "Pojedyncze lub przedawnione błędy workflow (np. Plx tables) i automatyczne statusy CHG -> 0.0-0.2. Krytyczny alert bezpieczeństwa (np. VulnCC/Cybersecurity na moim urządzeniu/koncie) -> 0.9-1.0.",
       "autonomy_threshold": 0.4,
       "action_auto": [
@@ -116,7 +116,7 @@
       "id": "TOPIC-09",
       "name": "Administracja i biuro (TERA)",
       "description": "Wyłączenia prądu, testy zasilania, prace w labie/biurze, przesyłki i logistyka",
-      "class_weight": 0.3,
+      "urgency_weight": 0.3,
       "content_scoring_prompt": "Jeśli termin prac/wyłączenia prądu już minął -> 0.0. Jeśli dotyczy aktywnej przesyłki sprzętowej do mnie lub nadchodzącego wyłączenia mojego labu -> 0.7-1.0.",
       "autonomy_threshold": 0.45,
       "action_auto": [

@@ -21,7 +21,7 @@ Skrypt oceny: <SKILL_DIR>/scripts/evaluate_dispositions.py
      * 0.3–0.5: informacja FYI na szeroki alias, notatki ze spotkania, rutynowy status.
      * 0.6–0.8: istotna dyskusja projektowa, bezpośredni code review, pytanie techniczne do zespołu.
      * 0.9–1.0: krytyczna zmiana, blocker, eskalacja, zadanie skierowane imiennie do użytkownika.
-6. Dla `topic_id` = `"UNKNOWN"` wpisz do `new_class_proposals` listę 3 propozycji generycznej klasy. Każda propozycja ma pola: `id` (wielkie litery A–Z, cyfry, `_` i `-`, bez spacji, opisowe, np. `CODE_REVIEW`; różne od `UNKNOWN` i od `id` istniejących klas), `name`, `description`, `class_weight` (0.0–1.0), `content_scoring_prompt`, `autonomy_threshold` (0.00–2.00), `action_auto`, `action_escalated`. Akcja to lista wpisów `gmail: <argumenty CLI gmail z {ID}>` lub `prompt: <opis>`; pusta lista oznacza brak akcji. Dla pozostałych wiadomości ustaw `new_class_proposals` na `null`.
+6. Dla `topic_id` = `"UNKNOWN"` wpisz do `new_class_proposals` listę 3 propozycji generycznej klasy. Każda propozycja ma pola: `id` (wielkie litery A–Z, cyfry, `_` i `-`, bez spacji, opisowe, np. `CODE_REVIEW`; różne od `UNKNOWN` i od `id` istniejących klas), `name`, `description`, `urgency_weight` (0.0–1.0, waga pilności klasy), `content_scoring_prompt`, `autonomy_threshold` (0.00–2.00), `action_auto`, `action_escalated`. Akcja to lista wpisów `gmail: <argumenty CLI gmail z {ID}>` lub `prompt: <opis>`; pusta lista oznacza brak akcji. Dla pozostałych wiadomości ustaw `new_class_proposals` na `null`.
 7. Wywołaj skrypt oceny dla wszystkich wiadomości:
    ```bash
    python3 <SKILL_DIR>/scripts/evaluate_dispositions.py << 'EOF'
@@ -83,12 +83,12 @@ Skrypt oceny: <SKILL_DIR>/scripts/evaluate_dispositions.py
       "id": "<wielkie litery A–Z, cyfry, _ i -, np. CODE_REVIEW; różne od UNKNOWN i od id istniejących klas>",
       "name": "<nazwa generycznej klasy>",
       "description": "<zakres klasy opisany tak, by obejmował wszystkie analizowane maile>",
-      "class_weight": 0.5,
+      "urgency_weight": 0.5,
       "content_scoring_prompt": "<reguły oceny content_score dopasowane do analizowanych maili>",
       "autonomy_threshold": 0.5,
       "action_auto": ["<wpisy gmail: … z {ID} lub prompt: …>"],
       "action_escalated": ["<wpisy gmail: … z {ID} lub prompt: …>"]
     }
     ```
-    - Dobierz `class_weight`, `autonomy_threshold` i akcje tak, aby typowe maile z zestawu dawały dyspozycję zgodną z ich charakterem.
+    - Dobierz `urgency_weight` (jak mocno pilność wpływa na ważność w tej klasie), `autonomy_threshold` i akcje tak, aby typowe maile z zestawu dawały dyspozycję zgodną z ich charakterem.
     - Nie wykonuj żadnych akcji na analizowanych mailach.

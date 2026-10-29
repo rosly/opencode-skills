@@ -20,14 +20,14 @@ Definitions:
 - **Topic Class Identifier** — the unique identifier of a Topic Class.
 - **Topic Class Name** — the short name of a Topic Class.
 - **Topic Class Description** — the scope description of a Topic Class.
-- **Topic Class Weight** — the weight of a Topic Class used in the Message Importance Score.
+- **Topic Class Urgency Weight** — the weight of a Topic Class that scales the Message Urgency Score in the Message Importance Score.
 - **Class-Specific Content Scoring Instructions** — the instructions of a Topic Class for determining the Content Importance Score.
 - **Autonomous Action Threshold** — the Message Importance Score limit of a Topic Class that separates the Below-Threshold Action List from the Above-Threshold Action List.
 - **Below-Threshold Action List** — the action of a Topic Class for a Message Importance Score less than or equal to the Autonomous Action Threshold.
 - **Above-Threshold Action List** — the action of a Topic Class for a Message Importance Score greater than the Autonomous Action Threshold.
 - **Message Urgency Score** — the urgency score of a message.
 - **Content Importance Score** — the content importance score of a message.
-- **Message Importance Score** — the result of Message Urgency Score + (Topic Class Weight × Content Importance Score).
+- **Message Importance Score** — the result of (Topic Class Urgency Weight × Message Urgency Score) + Content Importance Score.
 - **Importance Calculation** — the textual record of the Message Importance Score computation showing its operands and result.
 - **Mail Tool Command Entry** — an action entry starting with `gmail: `.
 - **Mail Action Name** — the command word that follows the namespace in a Mail Tool Command Entry (for example `mark-read` in `gmail: mutate mark-read {ID}`).
@@ -53,8 +53,8 @@ Definitions:
 
 - REQ-EMC-1.1: The Topic Database shall be a JSON file at the path `~/.gemini/email_topics.json`.
 - REQ-EMC-1.2: The Topic Database shall store the Topic Class Collection in its top-level object.
-- REQ-EMC-1.3: Each Topic Class shall contain a Topic Class Identifier, Topic Class Name, Topic Class Description, Topic Class Weight, Class-Specific Content Scoring Instructions, Autonomous Action Threshold, Below-Threshold Action List, and Above-Threshold Action List.
-- REQ-EMC-1.5: The Topic Class Weight shall be a number in the range 0.0–1.0.
+- REQ-EMC-1.3: Each Topic Class shall contain a Topic Class Identifier, Topic Class Name, Topic Class Description, Topic Class Urgency Weight, Class-Specific Content Scoring Instructions, Autonomous Action Threshold, Below-Threshold Action List, and Above-Threshold Action List.
+- REQ-EMC-1.5: The Topic Class Urgency Weight shall be a number in the range 0.0–1.0.
 - REQ-EMC-1.7: The Class-Specific Content Scoring Instructions shall be a text; an empty text is permitted.
 - REQ-EMC-1.8: A Topic Class shall describe a generic category of conversations or an entire project, not a single thread.
 - REQ-EMC-1.11: The Autonomous Action Threshold shall be a number in the range 0.00–2.00.
@@ -103,19 +103,20 @@ Definitions:
 - REQ-EMC-4.11: A subagent shall perform each entry of the Deferred Semantic Action List returned by the scoring script, either by invoking the gmail CLI or by preparing information for the summary report, as described by the entry.
 - REQ-EMC-4.13: A subagent shall return to the main thread a Message Outcome Record for each message, containing the MESSAGE_ID, sender, subject, Topic Class Identifier, Importance Calculation, Mail Tool Command Entry results, Semantic Instruction Entry results, and execution errors.
 - REQ-EMC-4.14: A subagent shall report to the main thread as an execution error every Mail Tool Command Entry that ended with an error, every Semantic Instruction Entry it did not perform, and every scoring script error.
-- REQ-EMC-4.15: For a message marked with the Unknown Topic Class Marker, a subagent shall return to the main thread 3 Class Proposals, each containing a Topic Class Identifier, Topic Class Name, Topic Class Description, Topic Class Weight, Class-Specific Content Scoring Instructions, Autonomous Action Threshold, Below-Threshold Action List, and Above-Threshold Action List.
+- REQ-EMC-4.15: For a message marked with the Unknown Topic Class Marker, a subagent shall return to the main thread 3 Class Proposals, each containing a Topic Class Identifier, Topic Class Name, Topic Class Description, Topic Class Urgency Weight, Class-Specific Content Scoring Instructions, Autonomous Action Threshold, Below-Threshold Action List, and Above-Threshold Action List.
 - REQ-EMC-4.16: When a subagent executes a gmail CLI command while performing a Semantic Instruction Entry, the subagent shall quote the executed command in bold Markdown in the result of that entry.
+- REQ-EMC-4.18: A subagent shall determine the Content Importance Score from the message content and the scoring instructions only, without accounting for the Topic Class Urgency Weight.
+- REQ-EMC-4.19: When preparing a Class Proposal, a subagent shall set the Topic Class Urgency Weight to express how strongly the Message Urgency Score affects the Message Importance Score in that Topic Class.
 
 ### 2.5 Scoring script
 
 - REQ-EMC-5.1: The scoring script shall accept a JSON list of Message Evaluation Records on standard input.
-- REQ-EMC-5.2: The scoring script shall read the Topic Class Weight, Autonomous Action Threshold, Below-Threshold Action List, and Above-Threshold Action List from the Topic Database.
+- REQ-EMC-5.2: The scoring script shall read the Topic Class Urgency Weight, Autonomous Action Threshold, Below-Threshold Action List, and Above-Threshold Action List from the Topic Database.
 - REQ-EMC-5.3: The scoring script shall place in the Range Error List a message whose MESSAGE_ID is not a non-empty text.
 - REQ-EMC-5.4: The scoring script shall place in the Range Error List a message whose Topic Class Identifier is neither present in the Topic Database nor equal to the Unknown Topic Class Marker.
 - REQ-EMC-5.6: The scoring script shall place in the Range Error List a message whose Content Importance Score is not a number in the range 0.0–1.0.
 - REQ-EMC-5.7: The scoring script shall process the valid messages of the list independently of range errors of other messages.
 - REQ-EMC-5.8: The scoring script shall not substitute default values for or clamp out-of-range values.
-- REQ-EMC-5.9: The scoring script shall compute the Message Importance Score of a valid message as Message Urgency Score + (Topic Class Weight × Content Importance Score).
 - REQ-EMC-5.10: When the Message Importance Score is less than or equal to the Autonomous Action Threshold, the scoring script shall select the Below-Threshold Action List.
 - REQ-EMC-5.11: When the Message Importance Score is greater than the Autonomous Action Threshold, the scoring script shall select the Above-Threshold Action List.
 - REQ-EMC-5.12: The scoring script shall execute each Mail Tool Command Entry of the selected action through the gmail CLI, after replacing the Message Identifier Placeholder with the MESSAGE_ID, without using a shell.
@@ -125,6 +126,9 @@ Definitions:
 - REQ-EMC-5.16: The scoring script shall return on standard output a JSON document containing, for each valid message, the Importance Calculation, Autonomous Action Threshold, Processing Mode, and Mail Tool Command Entry results, as well as the Deferred Semantic Action List and the Range Error List.
 - REQ-EMC-5.17: The scoring script shall place in the Range Error List a message whose Message Urgency Score is not a number in the range 0.0–1.0 inclusive.
 - REQ-EMC-5.18: For every executed Mail Tool Command Entry, the scoring script shall return the Mail Action Name in its result.
+- REQ-EMC-5.19: The scoring script shall compute the Message Importance Score of a valid message as (Topic Class Urgency Weight × Message Urgency Score) + Content Importance Score.
+  - REQ-EMC-5.19.1: The scoring script shall multiply the Message Urgency Score by the Topic Class Urgency Weight of the assigned Topic Class.
+  - REQ-EMC-5.19.2: The scoring script shall add the Content Importance Score to that product without applying any weight to the Content Importance Score.
 
 ### 2.6 New classes
 
@@ -227,6 +231,8 @@ Definitions:
 | REQ-EMC-4.14 | User decision 2026-10-29 | Execution errors reported to the user. | User |
 | REQ-EMC-4.15 | User decisions 2026-10-27 and 2026-10-29, REQ-EMC-1.3 | Ready proposals for confirmation, including a semantic identifier. | User |
 | REQ-EMC-4.16 | User decision 2026-10-29 | Mailbox changes made while performing semantic instructions leave a visible trace. | User |
+| REQ-EMC-4.18 | User decision 2026-10-29 | The class instructions already express content importance directly; the weight applies to urgency only. | User |
+| REQ-EMC-4.19 | User decision 2026-10-29 | The weight models the influence of urgency within the class. | User |
 | REQ-EMC-5.1 | User decision 2026-10-27 | The script accepts the aggregated list. | User |
 | REQ-EMC-5.2 | User decision 2026-10-27 | Calculation according to the class file. | User |
 | REQ-EMC-5.3 | User decision 2026-10-29 | Range error instead of default values. | User |
@@ -234,7 +240,6 @@ Definitions:
 | REQ-EMC-5.6 | User decision 2026-10-29 | Range error instead of default values. | User |
 | REQ-EMC-5.7 | User decision 2026-10-29 | An error affects only the faulty items. | User |
 | REQ-EMC-5.8 | User decision 2026-10-29, user global rules | No defensive coding. | User |
-| REQ-EMC-5.9 | User decision 2026-10-27 | Importance formula. | User |
 | REQ-EMC-5.10 | User decision 2026-10-27 | Autonomous action up to and including the threshold. | User |
 | REQ-EMC-5.11 | User decision 2026-10-27 | Action above the threshold. | User |
 | REQ-EMC-5.12 | User decisions 2026-10-29 | The script executes Mail Tool Command Entries itself. | User |
@@ -244,6 +249,9 @@ Definitions:
 | REQ-EMC-5.16 | User decisions 2026-10-27 to 2026-10-29 | Result as JSON on standard output. | User |
 | REQ-EMC-5.17 | User decision 2026-10-29 | The script accepts a continuous urgency range. | User |
 | REQ-EMC-5.18 | User decision 2026-10-29 | Deterministic extraction of the action name in Python. | User |
+| REQ-EMC-5.19 | User decision 2026-10-29 | The content score already carries its weights through the class instructions; the class weight scales the urgency of the class. | User |
+| REQ-EMC-5.19.1 | REQ-EMC-5.19 | Urgency term of the formula. | User |
+| REQ-EMC-5.19.2 | REQ-EMC-5.19 | Unweighted content term of the formula. | User |
 | REQ-EMC-6.2 | User decision 2026-10-29 | Commands generated from the gmail CLI help output. | User |
 | REQ-EMC-6.4 | User decision 2026-10-29 | Validation after every database change. | User |
 | REQ-EMC-6.5 | User decision 2026-10-29 | Returning the message to the same subagent. | User |
@@ -291,10 +299,12 @@ Definitions:
 | REQ-EMC-6.3 | Replaced | REQ-EMC-6.7 | New classes receive the identifier of the approved proposal instead of the next `TOPIC-<number>` (user decision 2026-10-29). |
 | REQ-EMC-6.1 | Replaced | REQ-EMC-6.8 | Standard proposals are asked only when the contextual discovery is not used or yields no accepted proposal (user decision 2026-10-29). |
 | REQ-EMC-2.3 | Replaced | REQ-EMC-2.6 | Mail Tool Command Entry prefix changed from the word `gmail` to `gmail: `, symmetric to `prompt: ` (user decision 2026-10-29). |
+| REQ-EMC-5.9 | Replaced | REQ-EMC-5.19 | The class weight scales the Message Urgency Score instead of the Content Importance Score (user decision 2026-10-29). |
+| REQ-EMC-4.15 | Clarified | REQ-EMC-4.15 | Term renamed to Topic Class Urgency Weight; obligation unchanged (user decision 2026-10-29). |
 | REQ-EMC-1.10 | Replaced | REQ-EMC-1.13 | The Database Template is empty and is not a default database (user decision 2026-10-29). |
 | REQ-EMC-1.2 | Clarified | REQ-EMC-1.2 | Implementation identifiers replaced by defined code names (user decision 2026-10-29). |
-| REQ-EMC-1.3 | Clarified | REQ-EMC-1.3 | Implementation identifiers replaced by defined code names (user decision 2026-10-29). |
-| REQ-EMC-1.5 | Clarified | REQ-EMC-1.5 | Implementation identifiers replaced by defined code names (user decision 2026-10-29). |
+| REQ-EMC-1.3 | Clarified | REQ-EMC-1.3 | Implementation identifiers replaced by defined code names; term Topic Class Weight renamed to Topic Class Urgency Weight with unchanged obligation (user decisions 2026-10-29). |
+| REQ-EMC-1.5 | Clarified | REQ-EMC-1.5 | Implementation identifiers replaced by defined code names; term Topic Class Weight renamed to Topic Class Urgency Weight with unchanged obligation (user decisions 2026-10-29). |
 | REQ-EMC-1.7 | Clarified | REQ-EMC-1.7 | Implementation identifiers replaced by defined code names (user decision 2026-10-29). |
 | REQ-EMC-2.1 | Clarified | REQ-EMC-2.1 | Implementation identifiers replaced by defined code names (user decision 2026-10-29). |
 | REQ-EMC-2.2 | Clarified | REQ-EMC-2.2 | Implementation identifiers replaced by defined code names (user decision 2026-10-29). |
@@ -312,11 +322,10 @@ Definitions:
 | REQ-EMC-4.11 | Clarified | REQ-EMC-4.11 | Implementation identifiers replaced by defined code names (user decision 2026-10-29). |
 | REQ-EMC-4.13 | Clarified | REQ-EMC-4.13 | Implementation identifiers replaced by defined code names (user decision 2026-10-29). |
 | REQ-EMC-4.14 | Clarified | REQ-EMC-4.14 | Implementation identifiers replaced by defined code names (user decision 2026-10-29). |
-| REQ-EMC-5.2 | Clarified | REQ-EMC-5.2 | Implementation identifiers replaced by defined code names (user decision 2026-10-29). |
+| REQ-EMC-5.2 | Clarified | REQ-EMC-5.2 | Implementation identifiers replaced by defined code names; term Topic Class Weight renamed to Topic Class Urgency Weight with unchanged obligation (user decisions 2026-10-29). |
 | REQ-EMC-5.3 | Clarified | REQ-EMC-5.3 | Implementation identifiers replaced by defined code names (user decision 2026-10-29). |
 | REQ-EMC-5.4 | Clarified | REQ-EMC-5.4 | Implementation identifiers replaced by defined code names (user decision 2026-10-29). |
 | REQ-EMC-5.6 | Clarified | REQ-EMC-5.6 | Implementation identifiers replaced by defined code names (user decision 2026-10-29). |
-| REQ-EMC-5.9 | Clarified | REQ-EMC-5.9 | Implementation identifiers replaced by defined code names (user decision 2026-10-29). |
 | REQ-EMC-5.10 | Clarified | REQ-EMC-5.10 | Implementation identifiers replaced by defined code names (user decision 2026-10-29). |
 | REQ-EMC-5.11 | Clarified | REQ-EMC-5.11 | Implementation identifiers replaced by defined code names (user decision 2026-10-29). |
 | REQ-EMC-5.12 | Clarified | REQ-EMC-5.12 | Implementation identifiers replaced by defined code names (user decision 2026-10-29). |

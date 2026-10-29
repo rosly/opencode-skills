@@ -1,8 +1,8 @@
 ---
 name: email-classifier
-description: Klasyfikuje nieprzeczytane emaile według bazy generycznych tematów w ~/.gemini/email_topics.json, deleguje ocenę i wykonanie akcji podagentom (ważność urgency + class_weight * content_score liczy deterministyczny skrypt) i przedstawia raport zbiorczy; waliduje bazę tematów względem pomocy CLI gmail. Use when użytkownik prosi o klasyfikację, ocenę ważności lub porządkowanie nieprzeczytanych maili według tematów, o dodanie klasy tematu albo o walidację bazy tematów email. Don't use for czytania, wyszukiwania lub wysyłania pojedynczych maili (use gmail) ani do triażu skrzynki bez bazy tematów (use email-triage).
+description: Klasyfikuje nieprzeczytane emaile według bazy generycznych tematów w ~/.gemini/email_topics.json, deleguje ocenę i wykonanie akcji podagentom (ważność urgency_weight * urgency + content_score liczy deterministyczny skrypt) i przedstawia raport zbiorczy; waliduje bazę tematów względem pomocy CLI gmail. Use when użytkownik prosi o klasyfikację, ocenę ważności lub porządkowanie nieprzeczytanych maili według tematów, o dodanie klasy tematu albo o walidację bazy tematów email. Don't use for czytania, wyszukiwania lub wysyłania pojedynczych maili (use gmail) ani do triażu skrzynki bez bazy tematów (use email-triage).
 metadata:
-  version: "0.9"
+  version: "0.10"
 ---
 
 # Email Classifier
@@ -29,7 +29,7 @@ Baza to obiekt JSON z listą klas pod kluczem `topics`. Pola klasy:
 |---|---|
 | `id` | unikalny; tylko wielkie litery A–Z, cyfry, `_` i `-`, bez spacji (np. `TOPIC-01`, `CODE_REVIEW`); nie może być `UNKNOWN` |
 | `name`, `description` | nazwa i zakres generycznej klasy |
-| `class_weight` | waga klasy, 0.0–1.0 |
+| `urgency_weight` | waga pilności klasy (mnoży `urgency`), 0.0–1.0 |
 | `content_scoring_prompt` | instrukcja oceny `content_score` dla klasy; może być pustym tekstem |
 | `autonomy_threshold` | próg działania autonomicznego, 0.00–2.00 |
 | `action_auto` | akcja dla ważności `<= autonomy_threshold` |
@@ -41,10 +41,11 @@ Akcja to lista wpisów. Pusta lista `[]` oznacza brak akcji. Każdy wpis to:
 
 ## Model oceny
 
-`importance = urgency + (class_weight * content_score)`
+`importance = (urgency_weight * urgency) + content_score`
 
 - Ważność liczy wyłącznie skrypt oceny.
 - `urgency` (pilność, 0.0–1.0) i `content_score` (ocena treści, 0.0–1.0) ocenia podagent według [assets/subagent-prompt-template.md](assets/subagent-prompt-template.md). Podagent przyznaje `urgency` tylko wartości 0.2, 0.5 lub 1.0; skrypt przyjmuje cały przedział 0.0–1.0.
+- `urgency_weight` klasy określa, jak mocno pilność wpływa na ważność w tej klasie. `content_score` nie ma wagi, bo `content_scoring_prompt` klasy już opisuje ocenę treści wprost.
 - Domyślną listę oceny `content_score` stosuje się wyłącznie wtedy, gdy klasa nie ma `content_scoring_prompt`, tj. `content_scoring_prompt = ""`.
 - `importance <= autonomy_threshold` → tryb `AUTONOMOUS`, akcja `action_auto`.
 - `importance > autonomy_threshold` → tryb `ESCALATED`, akcja `action_escalated`.
@@ -158,7 +159,7 @@ Dla każdej pozycji z `mode` = `UNKNOWN_TOPIC` wykonaj 4a, w razie potrzeby 4b, 
    ```
 5. Jeśli podagent nie znalazł żadnego maila albo użytkownik nie zaznaczył żadnego → przejdź do 4b.
 6. Wyślij narzędziem `send_message` do tego samego podagenta zaznaczone `MESSAGE_ID` i polecenie analizy (punkt 13 szablonu promptu).
-7. Przedstaw użytkownikowi propozycję klasy z analizy (`id`, `name`, `description`, `class_weight`, `content_scoring_prompt`, `autonomy_threshold`, `action_auto`, `action_escalated`) i zapytaj:
+7. Przedstaw użytkownikowi propozycję klasy z analizy (`id`, `name`, `description`, `urgency_weight`, `content_scoring_prompt`, `autonomy_threshold`, `action_auto`, `action_escalated`) i zapytaj:
    ```json
    {
      "questions": [
@@ -194,10 +195,10 @@ Dla każdej pozycji z `mode` = `UNKNOWN_TOPIC` wykonaj 4a, w razie potrzeby 4b, 
        {
          "question": "Wybierz parametry i akcje dla nowej klasy:",
          "options": [
-           "(Recommended) Z wybranej propozycji: class_weight=<W>, autonomy_threshold=<T> | action_auto: <lista> | action_escalated: <lista> | content_scoring_prompt: <tekst>",
-           "Niski priorytet: class_weight=0.2, autonomy_threshold=0.40 | action_auto: [\"gmail: mutate mark-read {ID}\"] | action_escalated: [\"prompt: powiadom użytkownika o wiadomości\"]",
-           "Średni priorytet: class_weight=0.5, autonomy_threshold=0.55 | action_auto: [\"prompt: odnotuj wiadomość w raporcie\", \"gmail: mutate mark-read {ID}\"] | action_escalated: [\"prompt: wypisz wymagane działania i terminy\"]",
-           "Wysoki priorytet: class_weight=0.9, autonomy_threshold=0.50 | action_auto: [] | action_escalated: [\"prompt: przeanalizuj wątek szczegółowo i zaproponuj odpowiedź\"]"
+           "(Recommended) Z wybranej propozycji: urgency_weight=<W>, autonomy_threshold=<T> | action_auto: <lista> | action_escalated: <lista> | content_scoring_prompt: <tekst>",
+           "Niski priorytet: urgency_weight=0.2, autonomy_threshold=0.40 | action_auto: [\"gmail: mutate mark-read {ID}\"] | action_escalated: [\"prompt: powiadom użytkownika o wiadomości\"]",
+           "Średni priorytet: urgency_weight=0.5, autonomy_threshold=0.55 | action_auto: [\"prompt: odnotuj wiadomość w raporcie\", \"gmail: mutate mark-read {ID}\"] | action_escalated: [\"prompt: wypisz wymagane działania i terminy\"]",
+           "Wysoki priorytet: urgency_weight=0.9, autonomy_threshold=0.50 | action_auto: [] | action_escalated: [\"prompt: przeanalizuj wątek szczegółowo i zaproponuj odpowiedź\"]"
          ],
          "is_multi_select": false
        }

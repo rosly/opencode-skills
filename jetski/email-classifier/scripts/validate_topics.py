@@ -40,7 +40,7 @@ PROMPT_PREFIX = "prompt: "
 ID_MARKER = "{ID}"
 UNKNOWN_TOPIC_ID = "UNKNOWN"
 REQUIRED_FIELDS = (
-    "id", "name", "description", "class_weight", "content_scoring_prompt",
+    "id", "name", "description", "urgency_weight", "content_scoring_prompt",
     "autonomy_threshold", "action_auto", "action_escalated",
 )
 TOPIC_ID_PATTERN = re.compile(r"^[A-Z0-9_-]+$")
@@ -186,8 +186,8 @@ def validate_topics(data: Any) -> List[str]:
     for field in ("name", "description", "content_scoring_prompt"):
       if not isinstance(topic[field], str):
         problems.append(f"{label}: {field} must be a string")
-    if not is_number(topic["class_weight"]) or not 0.0 <= topic["class_weight"] <= 1.0:
-      problems.append(f"{label}: class_weight must be a number in the range 0.0-1.0")
+    if not is_number(topic["urgency_weight"]) or not 0.0 <= topic["urgency_weight"] <= 1.0:
+      problems.append(f"{label}: urgency_weight must be a number in the range 0.0-1.0")
     if (not is_number(topic["autonomy_threshold"])
         or not 0.0 <= topic["autonomy_threshold"] <= 2.0):
       problems.append(

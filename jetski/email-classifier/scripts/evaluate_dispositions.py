@@ -4,7 +4,7 @@
 A subagent invokes this script. The script reads a JSON list of message
 evaluations from standard input and the topic database from
 ~/.gemini/email_topics.json. For every valid message it computes:
-    importance = urgency + (class_weight * content_score)
+    importance = (urgency_weight * urgency) + content_score
 selects action_auto (importance <= autonomy_threshold) or action_escalated
 (importance > autonomy_threshold), executes the "gmail: ..." entries through the
 gmail CLI, and returns the "prompt: ..." entries in prompt_actions without
@@ -137,7 +137,7 @@ def evaluate_items(
 
     topic = topics[item["topic_id"]]
     importance = round(
-        item["urgency"] + topic["class_weight"] * item["content_score"], 4
+        topic["urgency_weight"] * item["urgency"] + item["content_score"], 4
     )
     exceeds = importance > topic["autonomy_threshold"]
     gmail_results: List[Dict[str, Any]] = []
@@ -158,10 +158,10 @@ def evaluate_items(
     evaluated.append({
         **base,
         "topic_name": topic["name"],
-        "class_weight": topic["class_weight"],
+        "urgency_weight": topic["urgency_weight"],
         "formula": (
-            f"{item['urgency']:.2f} + ({topic['class_weight']:.2f} *"
-            f" {item['content_score']:.2f}) = {importance:.2f}"
+            f"({topic['urgency_weight']:.2f} * {item['urgency']:.2f}) +"
+            f" {item['content_score']:.2f} = {importance:.2f}"
         ),
         "importance": importance,
         "autonomy_threshold": topic["autonomy_threshold"],
