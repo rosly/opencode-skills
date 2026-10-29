@@ -2,7 +2,7 @@
 name: skill-creator
 description: Guide for creating effective Jetski skills. Use when users want to create a new skill (or update an existing skill) that extends Jetski's capabilities with specialized knowledge, workflows, or tool integrations. Don't use for rules, hooks, agents, plugins, or MCP servers (use jetski-customizations).
 metadata:
-  version: "2.4"
+  version: "2.5"
 ---
 
 # Skill Creator
@@ -282,12 +282,25 @@ If the skill delegates work to subagents → apply these rules:
 
 Skip this step when the skill was developed in place in a discovery location; Jetski already discovers it. Install only when the skill was developed elsewhere or obtained from an external source.
 
-Jetski loads skills from its discovery locations, so installing a skill means placing the skill directory there:
+Jetski loads skills from its discovery locations, so installing a skill means placing the skill's runtime files there:
 
 - Project: `.agents/skills/<skill-id>/`
 - Global: `~/.gemini/config/skills/<skill-id>/`
 - Google3 project: `_agents/skills/<skill-id>/`
 - Personal Piper: `configs/users/<username>/_agents/skills/<skill-id>/`
+
+Install only the runtime files: `SKILL.md` and the `scripts/`, `references/`, and `assets/` directories that exist in the source. Do not install any other file or directory from the source, such as `requirements.md`, `examples/`, tests, or research notes, because SKILL.md does not load them and they belong to development only.
+
+```bash
+rm -rf <installed-path>
+mkdir -p <installed-path>
+cp -a <source-directory>/SKILL.md <installed-path>/
+for dir in scripts references assets; do
+  if [ -d <source-directory>/$dir ]; then cp -a <source-directory>/$dir <installed-path>/; fi
+done
+```
+
+Run `rm -rf <installed-path>` only after the `metadata.version` check below allows the overwrite.
 
 After copying a skill, make every installed Python script executable:
 
@@ -327,4 +340,5 @@ Increment `metadata.version` on every edit to an existing skill, not only when a
 - [ ] If the skill uses subagents → each prompt template ends with `## Response format` that defines a JSON object with `status` and `errors`.
 - [ ] Every file in `scripts/`, `references/`, and `assets/` is referenced from SKILL.md, and no empty directory exists.
 - [ ] If the skill existed before → `metadata.version` is higher than the previous version.
-- [ ] If the skill was installed (Step 5) → `diff -r <source-directory> <installed-directory>` prints nothing.
+- [ ] If the skill was installed (Step 5) → `diff -r <source-directory>/<item> <installed-directory>/<item>` prints nothing for `SKILL.md` and for each of `scripts/`, `references/`, `assets/` present in the source.
+- [ ] If the skill was installed (Step 5) → `ls -A <installed-directory>` lists only `SKILL.md`, `scripts`, `references`, and `assets`.
