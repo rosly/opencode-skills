@@ -1,8 +1,8 @@
 ---
 name: skill-creator
-description: Guide for creating effective Jetski skills. Use when users want to create a new skill (or update an existing skill) that extends Jetski's capabilities with specialized knowledge, workflows, or tool integrations.
+description: Guide for creating effective Jetski skills. Use when users want to create a new skill (or update an existing skill) that extends Jetski's capabilities with specialized knowledge, workflows, or tool integrations. Don't use for rules, hooks, agents, plugins, or MCP servers (use jetski-customizations).
 metadata:
-  version: "2.1"
+  version: "2.2"
 ---
 
 # Skill Creator
@@ -114,6 +114,7 @@ To create a skill, follow the "Skill Creation Process" in order, skipping steps 
 
 Copy this checklist and track progress:
 
+- [ ] Step 0: Check existing state
 - [ ] Step 1: Understand the skill with concrete examples
 - [ ] Step 2: Plan the reusable skill contents
 - [ ] Step 3: Initialize the skill
@@ -121,6 +122,24 @@ Copy this checklist and track progress:
 - [ ] Step 5: Install or upgrade the skill (optional)
 - [ ] Step 6: Iterate
 - [ ] Check every item in "Definition of done"
+
+### Step 0: Check Existing State
+
+Check whether a skill with the same name exists in the target directory or in any Jetski discovery location:
+
+```bash
+ls -d <base-directory>/<skill-name> .agents/skills/<skill-name> ~/.gemini/config/skills/<skill-name> _agents/skills/<skill-name> 2>/dev/null
+```
+
+Inside a CitC workspace, also check `<citc-workspace-root>/configs/users/<username>/_agents/skills/<skill-name>`.
+
+- If no skill with that name exists → create mode: continue with Step 1 and create the skill in Step 3.
+- If the skill exists in the target directory → update mode:
+  1. Read its SKILL.md and bundled resources.
+  2. Compare the new intent with the existing skill's scope: purpose, triggers, workflow, and resources.
+  3. Ask the user about each conflict with the `ask_question` tool, as a series of questions. Offer options to amend, remove, or update the conflicting part, and mark one option as recommended with its reason.
+  4. Apply only the decisions the user approved, and skip Step 3.
+- If a skill with the same name exists in another scope → ask the user about it in the same way, because Jetski's loading priority makes one of the two skills override the other.
 
 ### Step 1: Understanding the Skill with Concrete Examples
 
