@@ -1,8 +1,8 @@
 ---
 name: skill-creator
-description: Guide for creating effective skills. This skill should be used when users want to create a new skill (or update an existing skill) that extends Jetski's capabilities with specialized knowledge, workflows, or tool integrations.
+description: Guide for creating effective Jetski skills. Use when users want to create a new skill (or update an existing skill) that extends Jetski's capabilities with specialized knowledge, workflows, or tool integrations.
 metadata:
-  version: "2.0"
+  version: "2.1"
 ---
 
 # Skill Creator
@@ -55,7 +55,15 @@ A skill can be developed in place in a discovery location, in any other workspac
 
 #### SKILL.md (required)
 
-**Metadata Quality:** The `name` and `description` fields in YAML frontmatter are both required. The `name` is the unique identifier of the skill; set it equal to the skill directory name. The `description` drives discovery: Jetski reads it to decide whether to activate the skill for a given user prompt. Be specific about what the skill does and when to use it. Use the third-person (e.g. "This skill should be used when..." instead of "Use this skill when...").
+**Metadata Quality:** The `name` and `description` fields in YAML frontmatter are both required. The `name` is the unique identifier of the skill; set it equal to the skill directory name. The `description` drives discovery: Jetski reads it to decide whether to activate the skill for a given user prompt. Write it with this formula:
+
+```
+<capability statement>. Use when <triggers>. Don't use for <out-of-scope tasks> (use <other-skill>).
+```
+
+- The capability statement and the `Use when` clause are mandatory.
+- The `Don't use for` clause is recommended only when another skill or task is likely to be confused with this one.
+- Name concrete triggers: user requests, file types, tools, or tasks.
 
 `metadata.version` is a quoted `MAJOR.MINOR` string (e.g. `"1.2"`) used by install and upgrade tooling to decide whether a skill can be safely overwritten. The Jetski documentation does not define this field. See "Install or Upgrade the Skill" below.
 
@@ -103,6 +111,16 @@ Skills use a three-level loading system to manage context efficiently:
 ## Skill Creation Process
 
 To create a skill, follow the "Skill Creation Process" in order, skipping steps only if there is a clear reason why they are not applicable.
+
+Copy this checklist and track progress:
+
+- [ ] Step 1: Understand the skill with concrete examples
+- [ ] Step 2: Plan the reusable skill contents
+- [ ] Step 3: Initialize the skill
+- [ ] Step 4: Edit the skill
+- [ ] Step 5: Install or upgrade the skill (optional)
+- [ ] Step 6: Iterate
+- [ ] Check every item in "Definition of done"
 
 ### Step 1: Understanding the Skill with Concrete Examples
 
@@ -190,11 +208,39 @@ Create only the reusable resources the skill references directly: `scripts/`, `r
 
 **Writing Style:** Write the entire skill using **imperative/infinitive form** (verb-first instructions), not second person. Use objective, instructional language (e.g., "To accomplish X, do Y" rather than "You should do X" or "If you need to do X"). This maintains consistency and clarity for AI consumption.
 
+**Sentence rules:**
+
+- Write one action per sentence or bullet.
+- Write decisions as condition → action: "If X → do Y".
+- Put exact commands in code blocks; do not describe a command in prose.
+- Add a reason ("because …") only when the rule is not obvious.
+- Use numbers instead of adjectives: "under 500 lines", not "short".
+- Do not use "appropriate", "as needed", or "consider" without a criterion that decides the case.
+- State each rule once. Refer to it from other places instead of repeating it.
+
 To complete SKILL.md, answer the following questions:
 
 1. What is the purpose of the skill, in a few sentences?
 2. When should the skill be used?
 3. In practice, how should Jetski use the skill? All reusable skill contents developed above should be referenced so that Jetski knows how to use them.
+
+#### Add Checklists
+
+Every skill ends with a `## Definition of done` checklist. Each item must be:
+
+- **Verifiable:** checked by a command, a file check, or an observable output, not by opinion.
+- **Atomic:** one condition per item.
+- **Not a copy of the body:** refer to the rule instead of restating it.
+- **Not automatable:** if a script can check the condition, the script checks it and the checklist has one item for running that script.
+
+If the skill has 3 or more ordered steps → start its workflow with a progress checklist that lists the steps, introduced by "Copy this checklist and track progress:".
+
+#### Add Step 0 for Skills That Write Files
+
+If the skill creates or modifies files → start its workflow with "Step 0: Check existing state":
+
+- If the output does not exist → create mode: run all steps.
+- If the output exists → update mode: read the existing files first, change only the affected parts, and do not regenerate unchanged files.
 
 ### Step 5: Install or Upgrade the Skill (optional)
 
@@ -226,3 +272,15 @@ After testing the skill, users may request improvements. Often this happens righ
 5. Implement changes and test again
 
 Increment `metadata.version` on every edit to an existing skill, not only when an iteration is complete. The skill may be installed at any time, so each edit must be recognizable as a deliberate upgrade rather than a file conflict (see the Installation paragraph in Step 5).
+
+## Definition of done
+
+- [ ] `scripts/quick_validate.py <skill-directory>` passes.
+- [ ] `grep -n '[[]TODO:' <skill-directory>/SKILL.md` prints nothing.
+- [ ] The `description` follows the formula in "Metadata Quality".
+- [ ] SKILL.md ends with a `## Definition of done` checklist that follows "Add Checklists".
+- [ ] If the workflow has 3 or more ordered steps → it starts with a progress checklist.
+- [ ] If the skill creates or modifies files → its workflow starts with "Step 0: Check existing state".
+- [ ] Every file in `scripts/`, `references/`, and `assets/` is referenced from SKILL.md, and no empty directory exists.
+- [ ] If the skill existed before → `metadata.version` is higher than the previous version.
+- [ ] If the skill was installed (Step 5) → `diff -r <source-directory> <installed-directory>` prints nothing.
