@@ -2,7 +2,7 @@
 name: email-classifier
 description: Klasyfikuje nieprzeczytane emaile według bazy generycznych tematów w ~/.gemini/email_topics.json, deleguje ocenę i wykonanie akcji podagentom (ważność urgency + class_weight * content_score liczy deterministyczny skrypt) i przedstawia raport zbiorczy; waliduje bazę tematów względem pomocy CLI gmail. Use when użytkownik prosi o klasyfikację, ocenę ważności lub porządkowanie nieprzeczytanych maili według tematów, o dodanie klasy tematu albo o walidację bazy tematów email. Don't use for czytania, wyszukiwania lub wysyłania pojedynczych maili (use gmail) ani do triażu skrzynki bez bazy tematów (use email-triage).
 metadata:
-  version: "0.6"
+  version: "0.7"
 ---
 
 # Email Classifier
@@ -123,7 +123,60 @@ Copy this checklist and track progress:
 
 ### Krok 4: Dodaj nowe klasy
 
-Dla każdej pozycji z `mode` = `UNKNOWN_TOPIC`:
+Dla każdej pozycji z `mode` = `UNKNOWN_TOPIC` wykonaj 4a, w razie potrzeby 4b, a potem 4c.
+
+#### 4a. Wyszukiwanie kontekstowe
+
+1. Zapytaj użytkownika:
+   ```json
+   {
+     "questions": [
+       {
+         "question": "Email '<Temat>' (od: <Nadawca>) nie pasuje do żadnej klasy. Czy wyszukać w historii skrzynki podobne maile, aby zaproponować bardziej generyczną klasę?",
+         "options": [
+           "(Recommended) Tak, wyszukaj podobne maile w historii",
+           "Nie, pokaż od razu 3 propozycje klasy"
+         ],
+         "is_multi_select": false
+       }
+     ]
+   }
+   ```
+2. Jeśli „Nie” → przejdź do 4b.
+3. Wyślij narzędziem `send_message` do podagenta, który ocenił wiadomość: `MESSAGE_ID` i polecenie wyszukiwania kontekstowego (punkt 12 szablonu promptu).
+4. Zapytaj użytkownika o zestaw. Każdy znaleziony mail to osobna opcja `<data> | <nadawca> | <temat>`, wszystkie zaznaczalne:
+   ```json
+   {
+     "questions": [
+       {
+         "question": "Zaznacz maile podobne do '<Temat>', które mają trafić do analizy reguł nowej klasy. Odznacz błędne dopasowania.",
+         "options": ["<data> | <nadawca> | <temat>", "..."],
+         "is_multi_select": true
+       }
+     ]
+   }
+   ```
+5. Jeśli podagent nie znalazł żadnego maila albo użytkownik nie zaznaczył żadnego → przejdź do 4b.
+6. Wyślij narzędziem `send_message` do tego samego podagenta zaznaczone `MESSAGE_ID` i polecenie analizy (punkt 13 szablonu promptu).
+7. Przedstaw użytkownikowi propozycję klasy z analizy (`id`, `name`, `description`, `class_weight`, `content_scoring_prompt`, `autonomy_threshold`, `action_auto`, `action_escalated`) i zapytaj:
+   ```json
+   {
+     "questions": [
+       {
+         "question": "Czy zaakceptować propozycję klasy <id> z analizy podobnych maili?",
+         "options": [
+           "(Recommended) Akceptuję propozycję",
+           "Odrzucam, pokaż 3 standardowe propozycje klasy"
+         ],
+         "is_multi_select": false
+       }
+     ]
+   }
+   ```
+8. Jeśli użytkownik zaakceptował → przejdź do 4c z tą propozycją. Jeśli odrzucił → przejdź do 4b.
+9. Nie wykonuj żadnych akcji na mailach znalezionych w wyszukiwaniu.
+
+#### 4b. Propozycje standardowe
 
 1. Zapytaj użytkownika. Wypełnij opcje propozycjami z `new_class_proposals`:
    ```json
@@ -152,17 +205,22 @@ Dla każdej pozycji z `mode` = `UNKNOWN_TOPIC`:
    }
    ```
 2. Jeśli użytkownik wybrał profil priorytetu → weź `content_scoring_prompt` z wybranej propozycji klasy.
-3. Sprawdź każdy wpis `gmail …` wybranych akcji w pomocy polecenia:
+
+#### 4c. Zapis klasy
+
+Wykonaj dla propozycji zaakceptowanej w 4a albo wybranej w 4b.
+
+1. Sprawdź każdy wpis `gmail …` wybranych akcji w pomocy polecenia:
    ```bash
    /google/bin/releases/gemini-agents-gmail/gmail <przestrzeń> <polecenie> --help
    ```
-4. Jeśli polecenie, flaga lub liczba argumentów nie zgadza się z pomocą → popraw wpis według pomocy i zapytaj użytkownika o zatwierdzenie poprawionego wpisu.
-5. Użyj `id` z wybranej propozycji klasy.
-6. Dopisz klasę do listy `topics` w `~/.gemini/email_topics.json` ze wszystkimi polami z sekcji „Baza tematów”.
-7. Wykonaj procedurę „Walidacja bazy tematów”.
-8. Jeśli walidacja zakończy się błędem → popraw klasę, zapytaj użytkownika o zatwierdzenie poprawki i wróć do punktu 7.
-9. Wyślij narzędziem `send_message` do podagenta, który ocenił wiadomość: `MESSAGE_ID` i nowy `topic_id`.
-10. Zastąp pozycję wiadomości wynikiem zwróconym przez podagenta.
+2. Jeśli polecenie, flaga lub liczba argumentów nie zgadza się z pomocą → popraw wpis według pomocy i zapytaj użytkownika o zatwierdzenie poprawionego wpisu.
+3. Użyj `id` z propozycji klasy.
+4. Dopisz klasę do listy `topics` w `~/.gemini/email_topics.json` ze wszystkimi polami z sekcji „Baza tematów”.
+5. Wykonaj procedurę „Walidacja bazy tematów”.
+6. Jeśli walidacja zakończy się błędem → popraw klasę, zapytaj użytkownika o zatwierdzenie poprawki i wróć do punktu 5.
+7. Wyślij narzędziem `send_message` do podagenta, który ocenił wiadomość: `MESSAGE_ID` i nowy `topic_id`.
+8. Zastąp pozycję wiadomości wynikiem zwróconym przez podagenta.
 
 ### Krok 5: Przedstaw raport zbiorczy
 

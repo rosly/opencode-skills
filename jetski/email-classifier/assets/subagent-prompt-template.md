@@ -66,3 +66,29 @@ Skrypt oceny: <SKILL_DIR>/scripts/evaluate_dispositions.py
     - `gmail_results`: przepisz z wyniku skryptu.
     - `execution_errors`: wpisz każdy wynik z `gmail_results` z `exit_code` różnym od 0, każdy wpis `prompt_actions`, którego nie wykonałeś, z powodem, oraz każdy błąd skryptu oceny.
 11. Jeśli wątek główny odeśle wiadomość z nowym `topic_id` → odczytaj ponownie bazę tematów, ustaw `content_score` według kroku 5 dla nowej klasy, wywołaj skrypt oceny (krok 7) z nowym `topic_id`, wykonaj kroki 8–9 i zwróć wynik w formie z kroku 10.
+12. Jeśli wątek główny poleci wyszukiwanie kontekstowe dla wiadomości `MESSAGE_ID` → wyszukaj w całej skrzynce, łącznie z przeczytanymi, maile podobne do tej wiadomości:
+    ```bash
+    /google/bin/releases/gemini-agents-gmail/gmail readonly semantic-search --query "<zapytanie opisujące temat wiadomości>" --sort-by relevancy --quiet-thoughts
+    ```
+    - Sformułuj zapytanie na podstawie treści wiadomości. Możesz dodać `--from` lub `--mandatory-keywords`, jeśli zawężają wyniki do tego samego tematu.
+    - Pomiń samą wiadomość `MESSAGE_ID`.
+    - Zwróć wątkowi głównemu wyłącznie JSON z co najwyżej 20 najlepiej dopasowanymi mailami:
+      ```json
+      [{"message_id": "<ID>", "date": "<Data>", "from": "<Nadawca>", "subject": "<Temat>"}]
+      ```
+    - Nie wykonuj żadnych akcji na znalezionych mailach.
+13. Jeśli wątek główny przyśle listę zaznaczonych `MESSAGE_ID` do analizy → pobierz ich treść (`readonly get`), przeanalizuj je razem z wiadomością `UNKNOWN` i zwróć wyłącznie JSON z jedną propozycją klasy obejmującą wszystkie analizowane maile:
+    ```json
+    {
+      "id": "<wielkie litery A–Z, cyfry, _ i -, np. CODE_REVIEW; różne od UNKNOWN i od id istniejących klas>",
+      "name": "<nazwa generycznej klasy>",
+      "description": "<zakres klasy opisany tak, by obejmował wszystkie analizowane maile>",
+      "class_weight": 0.5,
+      "content_scoring_prompt": "<reguły oceny content_score dopasowane do analizowanych maili>",
+      "autonomy_threshold": 0.5,
+      "action_auto": ["<wpisy gmail … z {ID} lub prompt: …>"],
+      "action_escalated": ["<wpisy gmail … z {ID} lub prompt: …>"]
+    }
+    ```
+    - Dobierz `class_weight`, `autonomy_threshold` i akcje tak, aby typowe maile z zestawu dawały dyspozycję zgodną z ich charakterem.
+    - Nie wykonuj żadnych akcji na analizowanych mailach.

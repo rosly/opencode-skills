@@ -34,6 +34,7 @@ Definitions:
 - **Message Identifier Placeholder** — the marker `{ID}` in a Mail Tool Command Entry.
 - **Unknown Topic Class Marker** — the value that marks a message matching no Topic Class.
 - **Class Proposal** — a proposed Topic Class for a message marked with the Unknown Topic Class Marker.
+- **Contextual Class Proposal** — a Class Proposal derived from a message marked with the Unknown Topic Class Marker and similar messages from the mailbox history approved by the user.
 - **Message Evaluation Record** — the per-message data a subagent passes to the scoring script.
 - **Message Outcome Record** — the per-message result a subagent returns to the main thread.
 - **Deferred Semantic Action List** — the list of Semantic Instruction Entries returned by the scoring script for execution by a subagent.
@@ -122,12 +123,12 @@ Definitions:
 
 ### 2.6 New classes
 
-- REQ-EMC-6.1: For each message marked with the Unknown Topic Class Marker, the main thread shall ask the user to choose a Topic Class from the Class Proposals and to choose the parameters and actions of that Topic Class.
 - REQ-EMC-6.2: The main thread shall generate the Mail Tool Command Entries of a new Topic Class from the help output of the gmail CLI.
 - REQ-EMC-6.4: After appending a Topic Class, the main thread shall run the Topic Database validation procedure.
 - REQ-EMC-6.5: After a successful validation, the main thread shall send the message with the new Topic Class Identifier to the subagent that evaluated it.
 - REQ-EMC-6.6: A subagent that receives a message with a new Topic Class Identifier shall invoke the scoring script for it.
 - REQ-EMC-6.7: The main thread shall append the approved Topic Class to the Topic Database with the Topic Class Identifier of the approved Class Proposal and all contents required by REQ-EMC-1.3.
+- REQ-EMC-6.8: When the user declines the contextual search, selects no found message, or rejects the Contextual Class Proposal, the main thread shall ask the user to choose a Topic Class from the Class Proposals and to choose the parameters and actions of that Topic Class.
 
 ### 2.7 Topic database validation
 
@@ -142,6 +143,19 @@ Definitions:
 - REQ-EMC-7.9: The validation script shall report an error for a Semantic Instruction Entry without text after the prefix.
 - REQ-EMC-7.10: When the validation detects an error, the validation script shall end with an exit code other than 0 and print the list of detected problems.
 - REQ-EMC-7.11: The validation script shall report an error for every Topic Class whose Topic Class Identifier violates REQ-EMC-1.16.
+
+### 2.8 Contextual class discovery
+
+- REQ-EMC-8.1: For each message marked with the Unknown Topic Class Marker, before any question about Class Proposals, the main thread shall ask the user whether to search the mailbox history for similar messages to propose a more generic Topic Class.
+- REQ-EMC-8.2: When the user agrees to the contextual search, the main thread shall instruct the subagent that evaluated the message to perform it.
+- REQ-EMC-8.3: The subagent shall perform the contextual search over the whole mailbox, including read messages, with the semantic search command of the gmail CLI.
+- REQ-EMC-8.4: The subagent shall return to the main thread at most 20 found messages, each with its MESSAGE_ID, sender, subject, and date.
+- REQ-EMC-8.5: The main thread shall present the found messages to the user as a multiple-choice list and ask which of them are similar and shall be passed to the analysis.
+- REQ-EMC-8.6: When the user selects at least one found message, the main thread shall send the selected MESSAGE_IDs to the same subagent for analysis.
+- REQ-EMC-8.7: The subagent shall analyze the message marked with the Unknown Topic Class Marker together with the selected messages and return one Contextual Class Proposal containing all contents listed in REQ-EMC-4.15, with a scope and actions that cover all analyzed messages.
+- REQ-EMC-8.8: The main thread shall present the Contextual Class Proposal to the user for acceptance.
+- REQ-EMC-8.9: When the user accepts the Contextual Class Proposal, the main thread shall apply REQ-EMC-6.2 and REQ-EMC-6.4 through REQ-EMC-6.7 to it.
+- REQ-EMC-8.10: The skill shall not perform any action on the messages found by the contextual search.
 
 ## 3. Non-functional requirements
 
@@ -218,15 +232,15 @@ Definitions:
 | REQ-EMC-5.12 | User decisions 2026-10-29 | The script executes Mail Tool Command Entries itself. | User |
 | REQ-EMC-5.13 | User decision 2026-10-29 | One error does not block the rest. | User |
 | REQ-EMC-5.14 | User decision 2026-10-29 | Semantic Instruction Entries returned in a special list. | User |
-| REQ-EMC-5.15 | REQ-EMC-5.3, REQ-EMC-5.4, REQ-EMC-5.6, REQ-EMC-5.17, REQ-EMC-6.1 | Missing class or invalid data prevents action selection. | User |
+| REQ-EMC-5.15 | REQ-EMC-5.3, REQ-EMC-5.4, REQ-EMC-5.6, REQ-EMC-5.17, REQ-EMC-6.8 | Missing class or invalid data prevents action selection. | User |
 | REQ-EMC-5.16 | User decisions 2026-10-27 to 2026-10-29 | Result as JSON on standard output. | User |
 | REQ-EMC-5.17 | User decision 2026-10-29 | The script accepts a continuous urgency range. | User |
-| REQ-EMC-6.1 | User decision 2026-10-27 | New class through a question with ready proposals. | User |
 | REQ-EMC-6.2 | User decision 2026-10-29 | Commands generated from the gmail CLI help output. | User |
 | REQ-EMC-6.4 | User decision 2026-10-29 | Validation after every database change. | User |
 | REQ-EMC-6.5 | User decision 2026-10-29 | Returning the message to the same subagent. | User |
 | REQ-EMC-6.6 | User decision 2026-10-29 | The subagent invokes the script. | User |
 | REQ-EMC-6.7 | User decision 2026-10-29 | New classes receive the semantic identifier from the approved proposal. | User |
+| REQ-EMC-6.8 | User decisions 2026-10-27 and 2026-10-29 | Standard proposals remain the fallback of the contextual discovery. | User |
 | REQ-EMC-7.1 | User decision 2026-10-29 | Validation as a separate on-demand procedure. | User |
 | REQ-EMC-7.2 | User decision 2026-10-29 | Validation triggers. | User |
 | REQ-EMC-7.3 | REQ-EMC-1.2, REQ-EMC-1.3, REQ-EMC-1.5, REQ-EMC-1.7, REQ-EMC-1.11, REQ-EMC-1.15, REQ-EMC-2.1, REQ-EMC-2.2 | Database structure check. | User |
@@ -238,6 +252,16 @@ Definitions:
 | REQ-EMC-7.9 | REQ-EMC-2.5 | A Semantic Instruction Entry must have a description. | User |
 | REQ-EMC-7.10 | User decision 2026-10-29 | Validation result visible to the caller. | User |
 | REQ-EMC-7.11 | REQ-EMC-1.16 | Reserved identifier check. | User |
+| REQ-EMC-8.1 | User decision 2026-10-29 | The user decides whether history search is worth it. | User |
+| REQ-EMC-8.2 | User decision 2026-10-29 | The evaluating subagent knows the message content and formulates the best query. | User |
+| REQ-EMC-8.3 | User decision 2026-10-29 | Semantic search over the whole mailbox. | User |
+| REQ-EMC-8.4 | User decision 2026-10-29 | Result limit of 20; the main thread sees headers only (REQ-EMC-3.1). | User |
+| REQ-EMC-8.5 | User decision 2026-10-29 | The user removes wrong matches that would distort the proposed rules. | User |
+| REQ-EMC-8.6 | User decision 2026-10-29 | Only the approved subset is analyzed. | User |
+| REQ-EMC-8.7 | User decision 2026-10-29 | Automatic fitting of scope and dispositions on the approved set. | User |
+| REQ-EMC-8.8 | User decision 2026-10-29 | The proposal requires user acceptance. | User |
+| REQ-EMC-8.9 | User decision 2026-10-29 | An accepted proposal follows the standard append and validation path. | User |
+| REQ-EMC-8.10 | User decision 2026-10-29 | Found messages serve only the analysis. | User |
 | REQ-NF-EMC-1.1 | User decision 2026-10-29 | Precise arithmetic in Jetski is available only in Python. | User |
 | REQ-NF-EMC-1.2 | User instruction 2026-10-29 (use of the skill-creator skill) | Compliance with skill authoring guidance. | User |
 | REQ-NF-EMC-1.3 | User decision 2026-10-29 | Location in the repository. | User |
@@ -256,6 +280,7 @@ Definitions:
 | REQ-EMC-1.4 | Replaced | REQ-EMC-1.15 | Identifier format widened from `TOPIC-<number>` to uppercase letters, digits, underscores, and hyphens without spaces (user decision 2026-10-29). |
 | REQ-EMC-4.12 | Replaced | REQ-EMC-4.15 | Class Proposals additionally contain a proposed Topic Class Identifier (user decision 2026-10-29). |
 | REQ-EMC-6.3 | Replaced | REQ-EMC-6.7 | New classes receive the identifier of the approved proposal instead of the next `TOPIC-<number>` (user decision 2026-10-29). |
+| REQ-EMC-6.1 | Replaced | REQ-EMC-6.8 | Standard proposals are asked only when the contextual discovery is not used or yields no accepted proposal (user decision 2026-10-29). |
 | REQ-EMC-1.10 | Replaced | REQ-EMC-1.13 | The Database Template is empty and is not a default database (user decision 2026-10-29). |
 | REQ-EMC-1.2 | Clarified | REQ-EMC-1.2 | Implementation identifiers replaced by defined code names (user decision 2026-10-29). |
 | REQ-EMC-1.3 | Clarified | REQ-EMC-1.3 | Implementation identifiers replaced by defined code names (user decision 2026-10-29). |
@@ -289,7 +314,6 @@ Definitions:
 | REQ-EMC-5.14 | Clarified | REQ-EMC-5.14 | Implementation identifiers replaced by defined code names (user decision 2026-10-29). |
 | REQ-EMC-5.15 | Clarified | REQ-EMC-5.15 | Implementation identifiers replaced by defined code names (user decision 2026-10-29). |
 | REQ-EMC-5.16 | Clarified | REQ-EMC-5.16 | Implementation identifiers replaced by defined code names (user decision 2026-10-29). |
-| REQ-EMC-6.1 | Clarified | REQ-EMC-6.1 | Implementation identifiers replaced by defined code names (user decision 2026-10-29). |
 | REQ-EMC-6.2 | Clarified | REQ-EMC-6.2 | Implementation identifiers replaced by defined code names (user decision 2026-10-29). |
 | REQ-EMC-6.5 | Clarified | REQ-EMC-6.5 | Implementation identifiers replaced by defined code names (user decision 2026-10-29). |
 | REQ-EMC-6.6 | Clarified | REQ-EMC-6.6 | Implementation identifiers replaced by defined code names (user decision 2026-10-29). |
